@@ -1,8 +1,10 @@
 import pygame
 import sys
+from network import Network
 
-
+# Config inicial do Pygame
 pygame.init()
+pygame.font.init()
 
 WIDTH, HEIGHT = 800, 500
 PADDLE_WIDTH, PADDLE_HEIGHT = 120, 10
@@ -12,123 +14,95 @@ WHITE = (255, 255, 255)
 BLUE = (0, 0, 255)
 RED = (255, 0, 0)
 PADDLE_SPEED = 7
-BALL_SPEED_X_INITIAL = 4
-BALL_SPEED_Y_INITIAL = 4
 
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
+font = pygame.font.Font(None, 74)
+small_font = pygame.font.Font(None, 30)
 
-# Rects para deteção de colisão e posicionamento dos objetos
-paddle1 = pygame.Rect(0, 0, PADDLE_WIDTH, PADDLE_HEIGHT) 
-paddle2 = pygame.Rect(0, 0, PADDLE_WIDTH, PADDLE_HEIGHT) 
-ball = pygame.Rect(0, 0, BALL_RADIUS * 2, BALL_RADIUS * 2)
-ball_speed_x, ball_speed_y = 0, 0
 
-game_over = True
-winner_text = ""
-
-# Font para exibir mensagens
-font = pygame.font.Font(None, 50) 
-
-def reset_game():
-    global ball_speed_x, ball_speed_y, game_over, winner_text
+def redraw_window(win, p1, p2, ball, winner_text, waiting_text):
+    """Função para desenhar todos os elementos na tela."""
+    win.fill(BLACK)
     
-    # Centraliza os paddles e a bola
-    paddle1.centerx = WIDTH / 2
-    paddle1.bottom = HEIGHT - 5 
+    # Desenha os paddles e a bola
+    pygame.draw.rect(win, BLUE, p1)
+    pygame.draw.rect(win, RED, p2)
+    pygame.draw.ellipse(win, WHITE, ball)
     
-    paddle2.centerx = WIDTH / 2
-    paddle2.top = 5
-    
-    ball.centerx = WIDTH / 2
-    ball.centery = HEIGHT / 2
-    
-    ball_speed_x = BALL_SPEED_X_INITIAL
-    ball_speed_y = BALL_SPEED_Y_INITIAL
-    
-    game_over = False
-    winner_text = ""
-
-# Inicia o jogo
-reset_game()
-game_over = True 
-
-running = True
-clock = pygame.time.Clock()
-
-while running:
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
-            
-        # <--- NOVO: Reinicia o jogo ao pressionar qualquer tecla se o jogo acabou
-        if event.type == pygame.KEYDOWN and game_over:
-            reset_game()
-
-    if not game_over:
-        keys = pygame.key.get_pressed()
-        
-        # Controles do Jogador 1
-        if keys[pygame.K_LEFT] and paddle1.left > 0:
-            paddle1.x -= PADDLE_SPEED
-        if keys[pygame.K_RIGHT] and paddle1.right < WIDTH:
-            paddle1.x += PADDLE_SPEED
-        
-        # Controles do Jogador 2
-        if keys[pygame.K_a] and paddle2.left > 0:
-            paddle2.x -= PADDLE_SPEED
-        if keys[pygame.K_d] and paddle2.right < WIDTH:
-            paddle2.x += PADDLE_SPEED
-
-        # Movimento da Bola
-        ball.x += ball_speed_x
-        ball.y += ball_speed_y
-
-        # Colisão da Bola com as paredes laterais
-        if ball.left <= 0 or ball.right >= WIDTH:
-            ball_speed_x *= -1
-            
-        # Colisão da Bola com os paddles
-        if ball.colliderect(paddle1) and ball_speed_y > 0:
-            ball_speed_y *= -1
-        if ball.colliderect(paddle2) and ball_speed_y < 0:
-            ball_speed_y *= -1
-            
-        # Fim de Jogo 
-        if ball.top <= 0:
-            winner_text = "Jogador 1 Venceu!"
-            game_over = True
-        if ball.bottom >= HEIGHT:
-            winner_text = "Jogador 2 Venceu!"
-            game_over = True
-
-
-
-    screen.fill(BLACK)
-    
-    # Desenha os paddles
-    pygame.draw.rect(screen, BLUE, paddle1)
-    pygame.draw.rect(screen, RED, paddle2)
-    
-    # Desenha a bola
-    pygame.draw.ellipse(screen, WHITE, ball)
-    
- 
-    if game_over:
-        if winner_text: 
-            text_surface = font.render(winner_text, True, WHITE)
-            text_rect = text_surface.get_rect(center=(WIDTH / 2, HEIGHT / 2 - 30))
-            screen.blit(text_surface, text_rect)
-        else: 
-            start_font = pygame.font.Font(None, 30)
-            start_surface = start_font.render("Pressione qualquer tecla para começar", True, WHITE)
-            start_rect = start_surface.get_rect(center=(WIDTH / 2, HEIGHT / 2))
-            screen.blit(start_surface, start_rect)
-
+    if waiting_text:
+        text_surface = small_font.render(waiting_text, True, WHITE)
+        text_rect = text_surface.get_rect(center=(WIDTH / 2, HEIGHT / 2))
+        win.blit(text_surface, text_rect)
+    if winner_text:
+        text_surface = font.render(winner_text, True, WHITE)
+        text_rect = text_surface.get_rect(center=(WIDTH / 2, HEIGHT / 2 - 20))
+        win.blit(text_surface, text_rect)
     pygame.display.flip()
+
+
+def main():
+    running = True
+    n = Network()
+    player_id = n.get_player_id()
+    if player_id is None:
+        print("Não foi possível obter o ID do jogador. Encerrando o programa...")
+        return
+    print(f"Conectado! Você é o jogador {player_id + 1}")
+    paddle1 = pygame.Rect(0, 0, PADDLE_WIDTH, PADDLE_HEIGHT)
+    paddle2 = pygame.Rect(0, 0, PADDLE_WIDTH, PADDLE_HEIGHT)
+    ball = pygame.Rect(0, 0, BALL_RADIUS * 2, BALL_RADIUS * 2)
+
+    # Obtendo o estado inicial do jogo do servidor
+    initial_state = n.send("get")
     
-    # Limita a taxa de quadros
-    clock.tick(30)
+    # Atualizando paddles e bola com o estado inicial do servidor
+    if initial_state:
+        p1_server, p2_server = initial_state["paddles"]
+        paddle1.x, paddle1.y = p1_server.x, p1_server.y
+        paddle2.x, paddle2.y = p2_server.x, p2_server.y
 
+    # Obtem o paddle do correto do jogador
+    my_paddle = paddle1 if player_id == 0 else paddle2
+    clock = pygame.time.Clock()
 
-pygame.quit()
-sys.exit()
+    while running:
+        clock.tick(60)
+        # Envia o paddle atualizado para o servidor e recebe o estado do jogo
+        game_state = n.send(my_paddle)
+        if not game_state:
+            running = False
+            print("Perda de conexão com o servidor.")
+            break
+        
+        p1_server, p2_server = game_state["paddles"]
+        paddle1.x, paddle1.y = p1_server.x, p1_server.y
+        paddle2.x, paddle2.y = p2_server.x, p2_server.y
+        
+        ball_server = game_state["ball"]
+        ball.x, ball.y = ball_server.x, ball_server.y
+
+        winner = game_state["winner"]
+        game_started = game_state["game_started"]
+        
+        waiting_msg = ""
+        if not game_started and not winner:
+            waiting_msg = "Esperando o segundo jogador conectar..."
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+        
+        if not winner:
+            keys = pygame.key.get_pressed()
+            if keys[pygame.K_LEFT] and my_paddle.left > 0:
+                my_paddle.x -= PADDLE_SPEED
+            if keys[pygame.K_RIGHT] and my_paddle.right < WIDTH:
+                my_paddle.x += PADDLE_SPEED
+
+        redraw_window(screen, paddle1, paddle2, ball, winner, waiting_msg)
+
+    pygame.quit()
+    sys.exit()
+
+if __name__ == "__main__":
+    main()
