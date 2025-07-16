@@ -5,7 +5,7 @@ from network import Network
 pygame.init()
 pygame.font.init()
 
-WIDTH, HEIGHT = 800, 500
+WIDTH, HEIGHT = 960, 600
 PADDLE_WIDTH, PADDLE_HEIGHT = 120, 10
 BALL_RADIUS = 8
 BLACK = (0, 0, 0)
@@ -47,12 +47,19 @@ def redraw_window(win, p1, p2, ball, winner, players_online, countdown_val, butt
         
         button_color = (150, 150, 0) if voted else (0, 150, 0)
         pygame.draw.rect(win, button_color, button)
-        button_text = "Aguardando..." if voted else "Jogar Novamente"
+        button_text = "Aguardando..." if voted else "Iniciar novo jogo"
         button_surface = small_font.render(button_text, True, WHITE)
         button_rect = button_surface.get_rect(center=button.center)
         win.blit(button_surface, button_rect)
         
     pygame.display.flip()
+
+def get_winner_text(winner, player_id):
+    if winner == "Jogador 1 Venceu!":
+        return "Você ganhou!" if player_id == 0 else "Você perdeu!"
+    elif winner == "Jogador 2 Venceu!":
+        return "Você perdeu!" if player_id == 0 else "Você ganhou!"
+    return winner
 
 def main():
     running = True
@@ -63,7 +70,6 @@ def main():
 
     paddle1 = pygame.Rect(0, 0, PADDLE_WIDTH, PADDLE_HEIGHT)
     paddle2 = pygame.Rect(0, 0, PADDLE_WIDTH, PADDLE_HEIGHT)
-    ball = pygame.Rect(0, 0, BALL_RADIUS * 2, BALL_RADIUS * 2)
     play_again_button = pygame.Rect(WIDTH/2 - 150, HEIGHT/2 + 20, 300, 60)
     
     voted_for_reset = False
@@ -103,9 +109,9 @@ def main():
             drawable_p1.y = HEIGHT - p1_server.y - PADDLE_HEIGHT
             drawable_p2.y = HEIGHT - p2_server.y - PADDLE_HEIGHT
             drawable_ball.y = HEIGHT - ball_server.y - (BALL_RADIUS * 2)
-            if winner == "Jogador 1 Venceu!": winner = "Você Perdeu!"
-            elif winner == "Jogador 2 Venceu!": winner = "Você Venceu!"
-                
+        
+        winner = get_winner_text(winner, player_id) if winner else None
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
