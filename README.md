@@ -15,3 +15,14 @@ venv\Scripts\activate         # Windows
 # Instale as dependências
 pip install -r requirements.txt
 ```
+
+## Como rodar
+
+```bash
+# Certifique-se que o ambiente virtual esteja ativado
+source venv/bin/activate
+# Execute o servidor em uma aba do terminal
+python3 server.py
+# Execute o cliente em uma aba do terminal
+python3 client.py
+```
