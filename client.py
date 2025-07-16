@@ -2,7 +2,6 @@ import pygame
 import sys
 from network import Network
 
-# Config inicial do Pygame
 pygame.init()
 pygame.font.init()
 
@@ -13,93 +12,116 @@ BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 BLUE = (0, 0, 255)
 RED = (255, 0, 0)
-PADDLE_SPEED = 7
+PADDLE_SPEED = 12
 
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
+pygame.display.set_caption("Cliente Pong")
 font = pygame.font.Font(None, 74)
-small_font = pygame.font.Font(None, 30)
+small_font = pygame.font.Font(None, 40)
+countdown_font = pygame.font.Font(None, 200)
 
-
-def redraw_window(win, p1, p2, ball, winner_text, waiting_text):
-    """Função para desenhar todos os elementos na tela."""
+def redraw_window(win, p1, p2, ball, winner, players_online, countdown_val, button, voted):
     win.fill(BLACK)
-    
-    # Desenha os paddles e a bola
-    pygame.draw.rect(win, BLUE, p1)
-    pygame.draw.rect(win, RED, p2)
-    pygame.draw.ellipse(win, WHITE, ball)
-    
-    if waiting_text:
-        text_surface = small_font.render(waiting_text, True, WHITE)
+
+    if players_online < 2:
+        text_surface = small_font.render("Aguardando oponente...", True, WHITE)
         text_rect = text_surface.get_rect(center=(WIDTH / 2, HEIGHT / 2))
         win.blit(text_surface, text_rect)
-    if winner_text:
-        text_surface = font.render(winner_text, True, WHITE)
-        text_rect = text_surface.get_rect(center=(WIDTH / 2, HEIGHT / 2 - 20))
+    elif countdown_val > 0:
+        text_surface = countdown_font.render(str(countdown_val), True, WHITE)
+        text_rect = text_surface.get_rect(center=(WIDTH / 2, HEIGHT / 2))
         win.blit(text_surface, text_rect)
-    pygame.display.flip()
+    elif countdown_val == 0:
+        text_surface = font.render("VAI!", True, WHITE)
+        text_rect = text_surface.get_rect(center=(WIDTH / 2, HEIGHT / 2))
+        win.blit(text_surface, text_rect)
+    else:
+        pygame.draw.rect(win, BLUE, p1)
+        pygame.draw.rect(win, RED, p2)
+        pygame.draw.ellipse(win, WHITE, ball)
 
+    if winner:
+        winner_surface = font.render(winner, True, WHITE)
+        winner_rect = winner_surface.get_rect(center=(WIDTH / 2, HEIGHT / 2 - 50))
+        win.blit(winner_surface, winner_rect)
+        
+        button_color = (150, 150, 0) if voted else (0, 150, 0)
+        pygame.draw.rect(win, button_color, button)
+        button_text = "Aguardando..." if voted else "Jogar Novamente"
+        button_surface = small_font.render(button_text, True, WHITE)
+        button_rect = button_surface.get_rect(center=button.center)
+        win.blit(button_surface, button_rect)
+        
+    pygame.display.flip()
 
 def main():
     running = True
     n = Network()
     player_id = n.get_player_id()
     if player_id is None:
-        print("Não foi possível obter o ID do jogador. Encerrando o programa...")
         return
-    print(f"Conectado! Você é o jogador {player_id + 1}")
+
     paddle1 = pygame.Rect(0, 0, PADDLE_WIDTH, PADDLE_HEIGHT)
     paddle2 = pygame.Rect(0, 0, PADDLE_WIDTH, PADDLE_HEIGHT)
     ball = pygame.Rect(0, 0, BALL_RADIUS * 2, BALL_RADIUS * 2)
-
-    # Obtendo o estado inicial do jogo do servidor
-    initial_state = n.send("get")
+    play_again_button = pygame.Rect(WIDTH/2 - 150, HEIGHT/2 + 20, 300, 60)
     
-    # Atualizando paddles e bola com o estado inicial do servidor
+    voted_for_reset = False
+    
+    initial_state = n.send("get")
     if initial_state:
         p1_server, p2_server = initial_state["paddles"]
         paddle1.x, paddle1.y = p1_server.x, p1_server.y
         paddle2.x, paddle2.y = p2_server.x, p2_server.y
 
-    # Obtem o paddle do correto do jogador
     my_paddle = paddle1 if player_id == 0 else paddle2
     clock = pygame.time.Clock()
 
     while running:
         clock.tick(60)
-        # Envia o paddle atualizado para o servidor e recebe o estado do jogo
+        
         game_state = n.send(my_paddle)
         if not game_state:
             running = False
-            print("Perda de conexão com o servidor.")
             break
         
-        p1_server, p2_server = game_state["paddles"]
-        paddle1.x, paddle1.y = p1_server.x, p1_server.y
-        paddle2.x, paddle2.y = p2_server.x, p2_server.y
-        
+        p1_server = game_state["paddles"][0]
+        p2_server = game_state["paddles"][1]
         ball_server = game_state["ball"]
-        ball.x, ball.y = ball_server.x, ball_server.y
-
         winner = game_state["winner"]
-        game_started = game_state["game_started"]
-        
-        waiting_msg = ""
-        if not game_started and not winner:
-            waiting_msg = "Esperando o segundo jogador conectar..."
+        countdown = game_state.get("countdown", -1)
+        players_online = game_state.get("players_online", 0)
 
+        if not winner:
+            voted_for_reset = False
+
+        drawable_p1 = p1_server.copy()
+        drawable_p2 = p2_server.copy()
+        drawable_ball = ball_server.copy()
+
+        if player_id == 1:
+            drawable_p1.y = HEIGHT - p1_server.y - PADDLE_HEIGHT
+            drawable_p2.y = HEIGHT - p2_server.y - PADDLE_HEIGHT
+            drawable_ball.y = HEIGHT - ball_server.y - (BALL_RADIUS * 2)
+            if winner == "Jogador 1 Venceu!": winner = "Você Perdeu!"
+            elif winner == "Jogador 2 Venceu!": winner = "Você Venceu!"
+                
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if winner and not voted_for_reset and play_again_button.collidepoint(event.pos):
+                    n.send("reset")
+                    voted_for_reset = True
         
-        if not winner:
+        if not winner and countdown < 1:
             keys = pygame.key.get_pressed()
             if keys[pygame.K_LEFT] and my_paddle.left > 0:
                 my_paddle.x -= PADDLE_SPEED
             if keys[pygame.K_RIGHT] and my_paddle.right < WIDTH:
                 my_paddle.x += PADDLE_SPEED
-
-        redraw_window(screen, paddle1, paddle2, ball, winner, waiting_msg)
+        
+        redraw_window(screen, drawable_p1, drawable_p2, drawable_ball, winner, players_online, countdown - 1, play_again_button, voted_for_reset)
 
     pygame.quit()
     sys.exit()
