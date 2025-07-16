@@ -3,13 +3,16 @@ from _thread import *
 import pickle
 import pygame
 import time
+import math
 
 HOST = "0.0.0.0"
 PORT = 5555
-WIDTH, HEIGHT = 800, 500
+WIDTH, HEIGHT = 960, 600
 PADDLE_WIDTH, PADDLE_HEIGHT = 120, 10
 BALL_RADIUS = 8
-BALL_SPEED_X_INITIAL, BALL_SPEED_Y_INITIAL = 1, 1
+BALL_SPEED_X_INITIAL, BALL_SPEED_Y_INITIAL = 4, 4
+SPEED_INCREASE_PER_FRAME = 0.001
+MAX_SPEED = 12
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 try:
@@ -54,6 +57,14 @@ def game_logic_thread():
     clock = pygame.time.Clock()
     while True:
         if game_state.get("game_started") and game_state.get("winner") is None:
+            current_speed_y = abs(ball_speed_y)
+            if current_speed_y < MAX_SPEED:
+                new_speed_y = current_speed_y + SPEED_INCREASE_PER_FRAME
+                ball_speed_y = math.copysign(new_speed_y, ball_speed_y)
+            current_speed_x = abs(ball_speed_x)
+            if current_speed_x < MAX_SPEED:
+                new_speed_x = current_speed_x + SPEED_INCREASE_PER_FRAME
+                ball_speed_x = math.copysign(new_speed_x, ball_speed_x)
             game_state["ball"].x += ball_speed_x
             game_state["ball"].y += ball_speed_y
             if game_state["ball"].left <= 0 or game_state["ball"].right >= WIDTH:
