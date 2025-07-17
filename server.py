@@ -9,7 +9,7 @@ import os
 
 load_dotenv()
 
-HOST = os.getenv("SERVER_IP")
+IP = os.getenv("SERVER_IP")
 PORT = int(os.getenv("SERVER_PORT"))
 WIDTH, HEIGHT = 960, 600
 PADDLE_WIDTH, PADDLE_HEIGHT = 120, 10
@@ -92,7 +92,7 @@ def client_thread(conn, player_id):
     conn.send(pickle.dumps(player_id)) # envia o id do jogador para o cliente
     
     try:
-        player_name = pickle.loads(conn.recv(2048))
+        player_name = pickle.loads(conn.recv(2048)) # bloqueia até que o nome seja recebido
         player_names[player_id] = player_name
         print(f"Jogador {player_id + 1} definiu o nome como: {player_name}")
 
@@ -146,7 +146,7 @@ start_new_thread(game_logic_thread, ())
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM) # socket com endereçamento IPv4 com protocolo TCP na camada de transporte
 try:
-    s.bind((HOST, PORT))
+    s.bind((IP, PORT))
 except socket.error as e:
     print(f"Erro ao ligar o servidor: {e}")
     exit()
