@@ -139,7 +139,7 @@ game_state = dict()
 players_connected = 0
 reset_votes = set()
 ball_speed_x, ball_speed_y = 0, 0
-player_names = list()
+player_names = ["", ""]
 
 setup_game_state()
 start_new_thread(game_logic_thread, ())
