@@ -92,11 +92,11 @@ def client_thread(conn, player_id):
     conn.send(pickle.dumps(player_id)) # envia o id do jogador para o cliente
     
     try:
-        player_name = pickle.loads(conn.recv(2048)) # recebe o nome do jogador
-        player_names[str(player_id)] = player_name
+        player_name = pickle.loads(conn.recv(2048))
+        player_names[player_id] = player_name
         print(f"Jogador {player_id + 1} definiu o nome como: {player_name}")
 
-        if players_connected == 2 and player_names["0"] and player_names["1"] and game_state.get("countdown") == 4:
+        if players_connected == 2 and player_names[0] and player_names[1] and game_state.get("countdown") == 4:
             start_new_round()
 
         game_state["players_online"] = players_connected
@@ -130,7 +130,7 @@ def client_thread(conn, player_id):
             
     print(f"Jogador {player_id + 1} desconectado.")
     players_connected -= 1
-    del player_names[str(player_id)]
+    player_names[player_id] = ""
     if player_id in reset_votes:
         reset_votes.remove(player_id) 
     conn.close()
@@ -139,7 +139,7 @@ game_state = dict()
 players_connected = 0
 reset_votes = set()
 ball_speed_x, ball_speed_y = 0, 0
-player_names = dict()
+player_names = list()
 
 setup_game_state()
 start_new_thread(game_logic_thread, ())
