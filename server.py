@@ -145,12 +145,12 @@ setup_game_state()
 start_new_thread(game_logic_thread, ())
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM) # socket com endereçamento IPv4 com protocolo TCP na camada de transporte
-s.listen(4) # tamanho máximo da fila de requisições: 4
 try:
     s.bind((HOST, PORT))
 except socket.error as e:
     print(f"Erro ao ligar o servidor: {e}")
     exit()
+s.listen(4) # tamanho máximo da fila de requisições: 4
 
 print("Servidor iniciado! Esperando por jogadores...")
 
