@@ -28,6 +28,7 @@ game_state = {}
 players_connected = 0
 reset_votes = set()
 ball_speed_x, ball_speed_y = 0, 0
+player_names = ["", ""]
 
 def setup_game_state():
     global ball_speed_x, ball_speed_y
@@ -87,8 +88,27 @@ def countdown_thread():
     game_state["game_started"] = True
 
 def client_thread(conn, player_id):
-    global players_connected, reset_votes
+    global players_connected, reset_votes, player_names
     conn.send(pickle.dumps(player_id))
+    
+    try:
+        name = pickle.loads(conn.recv(2048))
+        player_names[player_id] = name
+        print(f"Jogador {player_id + 1} definiu o nome como: {name}")
+
+        if players_connected == 2 and player_names[0] and player_names[1] and game_state.get("countdown") == 4:
+            start_new_round()
+
+        game_state["players_online"] = players_connected
+        game_state["player_names"] = player_names
+        conn.sendall(pickle.dumps(game_state))
+
+    except (EOFError, ConnectionResetError):
+        print(f"Jogador {player_id + 1} desconectado prematuramente.")
+        players_connected -= 1
+        conn.close()
+        return
+            
     while True:
         try:
             data = pickle.loads(conn.recv(2048))
@@ -100,13 +120,17 @@ def client_thread(conn, player_id):
                 pass
             else: 
                 game_state["paddles"][player_id] = data
+            
             game_state["players_online"] = players_connected
+            game_state["player_names"] = player_names
+            
             conn.sendall(pickle.dumps(game_state))
         except (ConnectionResetError, EOFError):
             break
             
     print(f"Jogador {player_id + 1} desconectado.")
     players_connected -= 1
+    player_names[player_id] = ""
     if player_id in reset_votes:
         reset_votes.remove(player_id) 
     conn.close()
@@ -119,6 +143,3 @@ while True:
     start_new_thread(client_thread, (conn, player_id))
     players_connected += 1
     print(f"Conexão recebida de {addr}. Jogador {player_id + 1}.")
-    
-    if players_connected == 2 and game_state.get("countdown") == 4:
-        start_new_round()
