@@ -20,76 +20,142 @@ COLOR_ACTIVE = pygame.Color('dodgerblue2')
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Cliente Pong")
 
-# Fontes
-font = pygame.font.Font(None, 74)
-small_font = pygame.font.Font(None, 40)
-input_font = pygame.font.Font(None, 50) 
-countdown_font = pygame.font.Font(None, 200)
+# Configuração dos tamanhos das fontes
+font = pygame.font.Font(size=74)
+small_font = pygame.font.Font(size=40)
+input_font = pygame.font.Font(size=50) 
+countdown_font = pygame.font.Font(size=200)
 
 def draw_name_input_screen(win, text, input_box, ok_button, is_active):
     win.fill(BLACK)
     
+    # Renderiza o prompt de instrução
     prompt_surface = input_font.render("Digite seu nome:", True, WHITE)
     prompt_rect = prompt_surface.get_rect(center=(WIDTH/2, HEIGHT/2 - 80))
-    win.blit(prompt_surface, prompt_rect)
+    win.blit(source=prompt_surface, 
+             dest=prompt_rect)
 
     color = COLOR_ACTIVE if is_active else COLOR_INACTIVE
     pygame.draw.rect(win, color, input_box, 2)
     
+    # Renderiza o texto digitado pelo usuário
     text_surface = input_font.render(text, True, WHITE)
-    win.blit(text_surface, (input_box.x + 10, input_box.y + 10))
+    win.blit(
+        source=text_surface, 
+        dest=(input_box.x + 10, input_box.y + 10)
+    )
     
-    pygame.draw.rect(win, GREEN_BTN, ok_button)
+    # Desenha o botão OK
+    pygame.draw.rect(
+        surface=win, 
+        color=GREEN_BTN, 
+        rect=ok_button  # retângulo predefinido para o botão
+        # width omitido => preenchido
+    )
     ok_text_surface = small_font.render("OK", True, WHITE)
-    ok_text_rect = ok_text_surface.get_rect(center=ok_button.center)
-    win.blit(ok_text_surface, ok_text_rect)
+    ok_text_rect = ok_text_surface.get_rect(
+        center=ok_button.center
+    )
+    win.blit(
+        source=ok_text_surface, 
+        dest=ok_text_rect
+    )
 
+    # Atualiza a tela para mostrar as mudanças
     pygame.display.flip()
 
 def redraw_window(win, p1, p2, ball, winner, players_online, countdown_val, button, voted, opponent_name):
     win.fill(BLACK)
 
-    #  Aguardando o segundo jogador se conectar.
+    #  Aguardando o segundo jogador se conectar
     if players_online < 2:
         text_surface = small_font.render("Aguardando oponente...", True, WHITE)
-        text_rect = text_surface.get_rect(center=(WIDTH / 2, HEIGHT / 2))
-        win.blit(text_surface, text_rect)
+        text_rect = text_surface.get_rect(
+            center=(WIDTH / 2, HEIGHT / 2)
+        )
+        win.blit(
+            source=text_surface,
+            dest=text_rect
+        )
 
-    # Contagem regressiva para iniciar a rodada.
+    # Contagem regressiva para iniciar a rodada
     elif countdown_val > 0:
-        opponent_text = f"Seu oponente é: {opponent_name}"
-        opponent_surface = small_font.render(opponent_text, True, WHITE)
-        opponent_rect = opponent_surface.get_rect(center=(WIDTH / 2, HEIGHT / 2 + 150))
-        win.blit(opponent_surface, opponent_rect)
-        
-        text_surface = countdown_font.render(str(countdown_val), True, WHITE)
-        text_rect = text_surface.get_rect(center=(WIDTH / 2, HEIGHT / 2))
-        win.blit(text_surface, text_rect)
+        opponent_surface = small_font.render(f"Seu oponente é: {opponent_name}", True, WHITE)
+        opponent_rect = opponent_surface.get_rect(
+            center=(WIDTH / 2, HEIGHT / 2 + 150)
+        )
+        win.blit(
+            source=opponent_surface,
+            dest=opponent_rect
+        )
 
-    # Sinal de início 
+        countdown_surface = countdown_font.render(str(countdown_val), True, WHITE)
+        countdown_rect = countdown_surface.get_rect(
+            center=(WIDTH / 2, HEIGHT / 2)
+        )
+        win.blit(
+            source=countdown_surface,
+            dest=countdown_rect
+        )
+
+    # Começo da rodada
     elif countdown_val == 0:
-        text_surface = font.render("VAI!", True, WHITE)
-        text_rect = text_surface.get_rect(center=(WIDTH / 2, HEIGHT / 2))
-        win.blit(text_surface, text_rect)
+        go_surface = font.render("VAI!", True, WHITE)
+        go_rect = go_surface.get_rect(
+            center=(WIDTH / 2, HEIGHT / 2)
+        )
+        win.blit(
+            source=go_surface,
+            dest=go_rect
+        )
 
-    # Jogo em andamento.
+    # Jogo em andamento — desenha jogadores e bola
     else:
-        pygame.draw.rect(win, BLUE, p1)
-        pygame.draw.rect(win, RED, p2)
-        pygame.draw.ellipse(win, WHITE, ball)
+        pygame.draw.rect(
+            surface=win,
+            color=BLUE,
+            rect=p1
+        )
+        pygame.draw.rect(
+            surface=win,
+            color=RED,
+            rect=p2
+        )
+        pygame.draw.ellipse(
+            surface=win,
+            color=WHITE,
+            rect=ball
+        )
 
+    # Tela de vencedor + botão
     if winner:
         winner_surface = font.render(winner, True, WHITE)
-        winner_rect = winner_surface.get_rect(center=(WIDTH / 2, HEIGHT / 2 - 50))
-        win.blit(winner_surface, winner_rect)
-        
+        winner_rect = winner_surface.get_rect(
+            center=(WIDTH / 2, HEIGHT / 2 - 50)
+        )
+        win.blit(
+            source=winner_surface,
+            dest=winner_rect
+        )
+
         button_color = (150, 150, 0) if voted else (0, 150, 0)
-        pygame.draw.rect(win, button_color, button)
+        pygame.draw.rect(
+            surface=win,
+            color=button_color,
+            rect=button
+        )
+
         button_text = "Aguardando..." if voted else "Iniciar novo jogo"
         button_surface = small_font.render(button_text, True, WHITE)
-        button_rect = button_surface.get_rect(center=button.center)
-        win.blit(button_surface, button_rect)
-        
+        button_rect = button_surface.get_rect(
+            center=button.center
+        )
+        win.blit(
+            source=button_surface,
+            dest=button_rect
+        )
+
+    # Atualiza a tela
     pygame.display.flip()
 
 def get_winner_text(winner, player_id):
@@ -111,30 +177,38 @@ def main():
     input_box = pygame.Rect(WIDTH/2 - 200, HEIGHT/2 - 25, 400, 50)
     ok_button = pygame.Rect(WIDTH/2 - 75, HEIGHT/2 + 50, 150, 60)
     
-    active = True
+    active = False
     name_entered = False
 
     while not name_entered:
         for event in pygame.event.get():
+            # fechar janela
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
-            
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                if ok_button.collidepoint(event.pos):
-                    if player_name:
-                        name_entered = True
 
-            if event.type == pygame.KEYDOWN:
-                if active:
-                    if event.key == pygame.K_RETURN:
-                        if player_name:
-                            name_entered = True
-                    elif event.key == pygame.K_BACKSPACE:
-                        player_name = player_name[:-1]
-                    else:
-                        if input_font.size(player_name)[0] < input_box.width - 20:
-                            player_name += event.unicode
+            # clique do mouse
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                # ativa/desativa o input_box dependendo do clique
+                if input_box.collidepoint(event.pos):
+                    active = True
+                else:
+                    active = False
+
+                # clique no botão OK
+                if ok_button.collidepoint(event.pos) and player_name:
+                    name_entered = True
+
+            # digitação via teclado, só se estiver ativo
+            if event.type == pygame.KEYDOWN and active:
+                if event.key == pygame.K_RETURN and player_name:
+                    name_entered = True
+                elif event.key == pygame.K_BACKSPACE:
+                    player_name = player_name[:-1]
+                else:
+                    # só inclui se couber na caixa
+                    if input_font.size(player_name + event.unicode)[0] < input_box.width - 20:
+                        player_name += event.unicode
         
         draw_name_input_screen(screen, player_name, input_box, ok_button, active)
 

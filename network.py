@@ -1,17 +1,22 @@
 # network.py
 import socket
 import pickle
+from dotenv import load_dotenv
+import os
 
 class Network:
     def __init__(self):
+        load_dotenv()
         self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.server_ip = "0.0.0.0"
-        self.port = 5555
+        self.server_ip = os.getenv("SERVER_IP")
+        self.port = int(os.getenv("SERVER_PORT"))
         self.addr = (self.server_ip, self.port)
         self.player_id = self.connect()
 
     def get_player_id(self):
-        """Retorna o ID do jogador (0 ou 1)."""
+        """
+        Retorna o ID do jogador (0 ou 1).
+        """
         return self.player_id
 
     def connect(self):
