@@ -54,15 +54,17 @@ def draw_name_input_screen(win, text, input_box, ok_button, is_active):
     
     pygame.display.flip()
 
-def redraw_window(win, p1, p2, ball, winner, players_online, countdown_val, button, voted, opponent_name, game_active):
+def redraw_window(win, p1, p2, ball, winner, players_online, countdown_val, button, voted, opponent_name, no_opponent):
     """Desenha o estado atual do jogo"""
     win.fill(BLACK)
     
-    # Aguardando jogadores
-    if not game_active:
-        text = small_font.render("Seu jogo está inativo. Para jogar novamente, inicie outra sessão.", True, WHITE)
+    # Jogo inativo por falta de oponente
+    if no_opponent:
+        text = small_font.render("Seu oponente se desconectou. Inicie outra sessão.", True, WHITE)
         text_rect = text.get_rect(center=(WIDTH/2, HEIGHT/2))
         win.blit(text, text_rect)
+    
+    # Aguardando jogadores
     elif players_online < 2:
         text = small_font.render("Aguardando oponente...", True, WHITE)
         text_rect = text.get_rect(center=(WIDTH/2, HEIGHT/2))
@@ -89,7 +91,7 @@ def redraw_window(win, p1, p2, ball, winner, players_online, countdown_val, butt
         pygame.draw.ellipse(win, WHITE, ball)
     
     # Tela de vitória
-    if winner and game_active:
+    if winner and not no_opponent:
         winner_text = font.render(winner, True, WHITE)
         winner_rect = winner_text.get_rect(center=(WIDTH/2, HEIGHT/2 - 50))
         win.blit(winner_text, winner_rect)
@@ -245,8 +247,8 @@ def main():
             players_online = game_state.get("connected_players")
             countdown = game_state.get("countdown")
             player_names = game_state.get("player_names")
-            game_active = game_state.get("active")
-            
+            no_opponent = game_state.get("player_leaved")
+
             # Nome do oponente
             opponent_name = player_names[1 - player_id]
             
@@ -260,7 +262,7 @@ def main():
             # Renderização
             redraw_window(screen, p1_server, p2_server, ball_server, 
                          winner_text, players_online, countdown, 
-                         play_again_button, voted_for_reset, opponent_name, game_active)
+                         play_again_button, voted_for_reset, opponent_name, no_opponent)
             
         except (ConnectionResetError, EOFError, socket.error) as e:
             print(f"Erro de conexão: {e}")
