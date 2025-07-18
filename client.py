@@ -23,170 +23,86 @@ COLOR_ACTIVE = pygame.Color('dodgerblue2')
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Cliente Pong")
 
-# Configuração dos tamanhos das fontes
-font = pygame.font.Font(size=74)
-small_font = pygame.font.Font(size=40)
-input_font = pygame.font.Font(size=50) 
-countdown_font = pygame.font.Font(size=200)
+# Fontes
+font = pygame.font.Font(None, 74)
+small_font = pygame.font.Font(None, 40)
+input_font = pygame.font.Font(None, 50)
+countdown_font = pygame.font.Font(None, 200)
 
 def draw_name_input_screen(win, text, input_box, ok_button, is_active):
+    """Desenha a tela de entrada de nome"""
     win.fill(BLACK)
     
-    # Renderiza o prompt de instrução
+    # Prompt
     prompt_surface = input_font.render("Digite seu nome:", True, WHITE)
     prompt_rect = prompt_surface.get_rect(center=(WIDTH/2, HEIGHT/2 - 80))
-    win.blit(source=prompt_surface, 
-             dest=prompt_rect)
-
+    win.blit(prompt_surface, prompt_rect)
+    
+    # Input box
     color = COLOR_ACTIVE if is_active else COLOR_INACTIVE
     pygame.draw.rect(win, color, input_box, 2)
     
-    # Renderiza o texto digitado pelo usuário
+    # Texto digitado
     text_surface = input_font.render(text, True, WHITE)
-    win.blit(
-        source=text_surface, 
-        dest=(input_box.x + 10, input_box.y + 10)
-    )
+    win.blit(text_surface, (input_box.x + 10, input_box.y + 10))
     
-    # Desenha o botão OK
-    pygame.draw.rect(
-        surface=win, 
-        color=GREEN_BTN, 
-        rect=ok_button
-    )
-    ok_text_surface = small_font.render("OK", True, WHITE)
-    ok_text_rect = ok_text_surface.get_rect(
-        center=ok_button.center
-    )
-    win.blit(
-        source=ok_text_surface, 
-        dest=ok_text_rect
-    )
-
-    pygame.display.flip()
-
-def draw_waiting_screen(win):
-    win.fill(BLACK)
-    text_surface = small_font.render("Aguardando oponente...", True, WHITE)
-    text_rect = text_surface.get_rect(
-        center=(WIDTH / 2, HEIGHT / 2)
-    )
-    win.blit(
-        source=text_surface,
-        dest=text_rect
-    )
-    pygame.display.flip()
-
-def draw_counting_screen(win, countdown_val, opponent_name):
-    win.fill(BLACK)
-    opponent_surface = small_font.render(f"Seu oponente é: {opponent_name}", True, WHITE)
-    opponent_rect = opponent_surface.get_rect(
-        center=(WIDTH / 2, HEIGHT / 2 + 150)
-    )
-    win.blit(
-        source=opponent_surface,
-        dest=opponent_rect
-    )
-
-    countdown_surface = countdown_font.render(str(countdown_val), True, WHITE)
-    countdown_rect = countdown_surface.get_rect(
-        center=(WIDTH / 2, HEIGHT / 2)
-    )
-    win.blit(
-        source=countdown_surface,
-        dest=countdown_rect
-    )
+    # Botão OK
+    pygame.draw.rect(win, GREEN_BTN, ok_button)
+    ok_text = small_font.render("OK", True, WHITE)
+    ok_rect = ok_text.get_rect(center=ok_button.center)
+    win.blit(ok_text, ok_rect)
+    
     pygame.display.flip()
 
 def redraw_window(win, p1, p2, ball, winner, players_online, countdown_val, button, voted, opponent_name):
+    """Desenha o estado atual do jogo"""
     win.fill(BLACK)
-
+    
+    # Aguardando jogadores
     if players_online < 2:
-        text_surface = small_font.render("Aguardando oponente...", True, WHITE)
-        text_rect = text_surface.get_rect(
-            center=(WIDTH / 2, HEIGHT / 2)
-        )
-        win.blit(
-            source=text_surface,
-            dest=text_rect
-        )
-
+        text = small_font.render("Aguardando oponente...", True, WHITE)
+        text_rect = text.get_rect(center=(WIDTH/2, HEIGHT/2))
+        win.blit(text, text_rect)
+    
+    # Countdown
     elif countdown_val > 0:
-        opponent_surface = small_font.render(f"Seu oponente é: {opponent_name}", True, WHITE)
-        opponent_rect = opponent_surface.get_rect(
-            center=(WIDTH / 2, HEIGHT / 2 + 150)
-        )
-        win.blit(
-            source=opponent_surface,
-            dest=opponent_rect
-        )
-
-        countdown_surface = countdown_font.render(str(countdown_val), True, WHITE)
-        countdown_rect = countdown_surface.get_rect(
-            center=(WIDTH / 2, HEIGHT / 2)
-        )
-        win.blit(
-            source=countdown_surface,
-            dest=countdown_rect
-        )
-
-    elif countdown_val == 0:
-        go_surface = font.render("VAI!", True, WHITE)
-        go_rect = go_surface.get_rect(
-            center=(WIDTH / 2, HEIGHT / 2)
-        )
-        win.blit(
-            source=go_surface,
-            dest=go_rect
-        )
-
-    else:
-        pygame.draw.rect(
-            surface=win,
-            color=BLUE,
-            rect=p1
-        )
-        pygame.draw.rect(
-            surface=win,
-            color=RED,
-            rect=p2
-        )
-        pygame.draw.ellipse(
-            surface=win,
-            color=WHITE,
-            rect=ball
-        )
-
+        # Nome do oponente
+        if opponent_name:
+            opponent_text = small_font.render(f"Oponente: {opponent_name}", True, WHITE)
+            opponent_rect = opponent_text.get_rect(center=(WIDTH/2, HEIGHT/2 + 150))
+            win.blit(opponent_text, opponent_rect)
+        
+        # Countdown
+        countdown_text = countdown_font.render(str(countdown_val), True, WHITE)
+        countdown_rect = countdown_text.get_rect(center=(WIDTH/2, HEIGHT/2))
+        win.blit(countdown_text, countdown_rect)
+    
+    # Jogo iniciado
+    elif countdown_val == 0 and not winner:
+        # Elementos do jogo
+        pygame.draw.rect(win, BLUE, p1)
+        pygame.draw.rect(win, RED, p2)
+        pygame.draw.ellipse(win, WHITE, ball)
+    
+    # Tela de vitória
     if winner:
-        winner_surface = font.render(winner, True, WHITE)
-        winner_rect = winner_surface.get_rect(
-            center=(WIDTH / 2, HEIGHT / 2 - 50)
-        )
-        win.blit(
-            source=winner_surface,
-            dest=winner_rect
-        )
-
+        winner_text = font.render(winner, True, WHITE)
+        winner_rect = winner_text.get_rect(center=(WIDTH/2, HEIGHT/2 - 50))
+        win.blit(winner_text, winner_rect)
+        
+        # Botão de reiniciar
         button_color = (150, 150, 0) if voted else (0, 150, 0)
-        pygame.draw.rect(
-            surface=win,
-            color=button_color,
-            rect=button
-        )
-
-        button_text = "Aguardando..." if voted else "Iniciar novo jogo"
+        pygame.draw.rect(win, button_color, button)
+        
+        button_text = "Aguardando..." if voted else "Novo Jogo"
         button_surface = small_font.render(button_text, True, WHITE)
-        button_rect = button_surface.get_rect(
-            center=button.center
-        )
-        win.blit(
-            source=button_surface,
-            dest=button_rect
-        )
-
+        button_rect = button_surface.get_rect(center=button.center)
+        win.blit(button_surface, button_rect)
+    
     pygame.display.flip()
 
 def get_winner_text(winner, player_id):
+    """Converte texto de vitória para perspectiva do jogador"""
     if winner == "Jogador 1 Venceu!":
         return "Você ganhou!" if player_id == 0 else "Você perdeu!"
     elif winner == "Jogador 2 Venceu!":
@@ -194,94 +110,87 @@ def get_winner_text(winner, player_id):
     return winner
 
 def main():
-    running = True
+    # Configuração de conexão
+    load_dotenv()
+    server_ip = os.getenv("SERVER_IP", "localhost")
+    server_port = int(os.getenv("SERVER_PORT", "5555"))
+    
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     
     try:
-        load_dotenv()
-        server_ip = os.getenv("SERVER_IP", "localhost")
-        server_port = int(os.getenv("SERVER_PORT", "5555"))
         client_socket.connect((server_ip, server_port))
-        print(f"Conectado ao servidor: {server_ip}:{server_port}")
-    except socket.error as e:
+        print(f"Conectado ao servidor {server_ip}:{server_port}")
+    except Exception as e:
         print(f"Erro de conexão: {e}")
         pygame.quit()
         sys.exit()
-        
+    
+    # Recebe ID do jogador
     try:
         player_id = pickle.loads(client_socket.recv(2048))
-        print(f"ID do jogador: {player_id}")
+        print(f"Sou o jogador {player_id}")
     except Exception as e:
-        print(f"Erro ao receber ID do jogador: {e}")
+        print(f"Erro ao receber ID: {e}")
         pygame.quit()
         sys.exit()
-
+    
+    # Entrada de nome
     player_name = ""
     input_box = pygame.Rect(WIDTH/2 - 200, HEIGHT/2 - 25, 400, 50)
     ok_button = pygame.Rect(WIDTH/2 - 75, HEIGHT/2 + 50, 150, 60)
     active = False
     name_entered = False
-
+    
     while not name_entered:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
-
+            
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if input_box.collidepoint(event.pos):
                     active = True
                 else:
                     active = False
-
-                if ok_button.collidepoint(event.pos) and player_name:
+                
+                if ok_button.collidepoint(event.pos) and player_name.strip():
                     name_entered = True
-
+            
             if event.type == pygame.KEYDOWN and active:
-                if event.key == pygame.K_RETURN and player_name:
+                if event.key == pygame.K_RETURN and player_name.strip():
                     name_entered = True
                 elif event.key == pygame.K_BACKSPACE:
                     player_name = player_name[:-1]
                 else:
-                    if len(player_name) < 20 and event.unicode.isprintable():
+                    if len(player_name) < 15 and event.unicode.isprintable():
                         player_name += event.unicode
         
         draw_name_input_screen(screen, player_name, input_box, ok_button, active)
-
-    pygame.display.set_caption(f"Pong - {player_name}")
     
+    # Envia nome para o servidor
     try:
         client_socket.send(pickle.dumps(player_name))
+        print(f"Nome enviado: {player_name}")
     except Exception as e:
         print(f"Erro ao enviar nome: {e}")
         pygame.quit()
         sys.exit()
     
-    # Receber estado inicial
-    try:
-        initial_state = pickle.loads(client_socket.recv(4096))
-        print("Estado inicial recebido")
-    except Exception as e:
-        print(f"Erro ao receber estado inicial: {e}")
-        pygame.quit()
-        sys.exit()
+    # Configuração do jogo
+    pygame.display.set_caption(f"Pong - {player_name}")
     
-    paddle1 = pygame.Rect(0, 0, PADDLE_WIDTH, PADDLE_HEIGHT)
-    paddle2 = pygame.Rect(0, 0, PADDLE_WIDTH, PADDLE_HEIGHT)
-    play_again_button = pygame.Rect(WIDTH/2 - 150, HEIGHT/2 + 20, 300, 60)
+    # Inicialização das raquetes
+    my_paddle = pygame.Rect(WIDTH/2 - PADDLE_WIDTH/2, 
+                           HEIGHT - 30 if player_id == 0 else 20, 
+                           PADDLE_WIDTH, PADDLE_HEIGHT)
+    
+    play_again_button = pygame.Rect(WIDTH/2 - 100, HEIGHT/2 + 50, 200, 60)
     voted_for_reset = False
-    
-    if initial_state and "paddles" in initial_state:
-        paddle1.x, paddle1.y = initial_state["paddles"][0].x, initial_state["paddles"][0].y
-        paddle2.x, paddle2.y = initial_state["paddles"][1].x, initial_state["paddles"][1].y
-    else: 
-        print("Erro: Estado inicial inválido")
-        pygame.quit()
-        sys.exit()
-
-    my_paddle = paddle1 if player_id == 0 else paddle2
     clock = pygame.time.Clock()
-
+    running = True
+    
+    print("Entrando no loop principal...")
+    
     while running:
         clock.tick(60)
         
@@ -290,82 +199,69 @@ def main():
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     running = False
+                
                 if event.type == pygame.MOUSEBUTTONDOWN:
+                    # Recebe estado atual para verificar winner
                     try:
-                        # Receber estado do jogo primeiro
                         game_state = pickle.loads(client_socket.recv(4096))
-                        winner = game_state.get("winner")
-                        
-                        if winner and not voted_for_reset and play_again_button.collidepoint(event.pos):
-                            client_socket.send(pickle.dumps("play again"))
-                            voted_for_reset = True
-                            continue
+                        if game_state.get("winner") and not voted_for_reset:
+                            if play_again_button.collidepoint(event.pos):
+                                client_socket.send(pickle.dumps("play_again"))
+                                voted_for_reset = True
+                                print("Voto para reiniciar enviado")
+                                continue
                     except:
                         pass
             
-            # Movimento da raquete
+            # Controle das raquetes
             keys = pygame.key.get_pressed()
             if keys[pygame.K_LEFT] and my_paddle.left > 0:
                 my_paddle.x -= PADDLE_SPEED
             if keys[pygame.K_RIGHT] and my_paddle.right < WIDTH:
                 my_paddle.x += PADDLE_SPEED
             
-            # Enviar estado da raquete
+            # Envia posição da raquete
             client_socket.send(pickle.dumps(my_paddle))
             
-            # Receber estado do jogo
+            # Recebe estado do jogo
             game_state = pickle.loads(client_socket.recv(4096))
+            
             if not game_state:
-                print("Conexão com servidor perdida")
+                print("Estado do jogo vazio - desconectando")
                 break
             
-            # Processar estado
-            countdown = game_state.get("countdown", -1)
-            player_names = game_state.get("player_names", ["", ""])
-            opponent_name = player_names[1 - player_id] if len(player_names) > 1 else "Oponente"
-            
-            p1_server = game_state.get("paddles", [paddle1, paddle2])[0]
-            p2_server = game_state.get("paddles", [paddle1, paddle2])[1]
+            # Extrai informações do estado
+            p1_server = game_state.get("paddles", [my_paddle, my_paddle])[0]
+            p2_server = game_state.get("paddles", [my_paddle, my_paddle])[1]
             ball_server = game_state.get("ball", pygame.Rect(WIDTH/2, HEIGHT/2, BALL_RADIUS*2, BALL_RADIUS*2))
             winner = game_state.get("winner")
             players_online = game_state.get("connected_players", 0)
-
-            # Verificar se o jogo resetou
+            countdown = game_state.get("countdown", -1)
+            player_names = game_state.get("player_names", ["", ""])
+            
+            # Nome do oponente
+            opponent_name = player_names[1 - player_id] if len(player_names) > 1 else ""
+            
+            # Reset do voto se jogo reiniciou
             if not winner:
                 voted_for_reset = False
-
-            # Verificar se o jogo terminou
-            if winner:
-                winner_text = get_winner_text(winner, player_id)
-            else:
-                winner_text = None
-
-            # Preparar elementos visuais
-            drawable_p1 = p1_server.copy() if p1_server else paddle1
-            drawable_p2 = p2_server.copy() if p2_server else paddle2
-            drawable_ball = ball_server.copy() if ball_server else pygame.Rect(WIDTH/2, HEIGHT/2, BALL_RADIUS*2, BALL_RADIUS*2)
+            
+            # Texto de vitória personalizado
+            winner_text = get_winner_text(winner, player_id) if winner else None
             
             # Renderização
-            redraw_window(
-                screen, 
-                drawable_p1, 
-                drawable_p2, 
-                drawable_ball, 
-                winner_text, 
-                players_online, 
-                countdown,
-                play_again_button, 
-                voted_for_reset, 
-                opponent_name
-            )
-                
-        except (ConnectionResetError, EOFError) as e:
+            redraw_window(screen, p1_server, p2_server, ball_server, 
+                         winner_text, players_online, countdown, 
+                         play_again_button, voted_for_reset, opponent_name)
+            
+        except (ConnectionResetError, EOFError, socket.error) as e:
             print(f"Erro de conexão: {e}")
             break
         except Exception as e:
             print(f"Erro geral: {e}")
             break
-
+    
+    print("Encerrando cliente...")
     client_socket.close()
     pygame.quit()
     sys.exit()
