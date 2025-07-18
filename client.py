@@ -210,7 +210,6 @@ def main():
                 running = False
             
             if winner_text is not None and event.type == pygame.MOUSEBUTTONDOWN:
-                # Recebe estado atual para verificar winner
                 if play_again_button.collidepoint(event.pos) and not voted_for_reset:
                     try:
                         client_socket.send(pickle.dumps("play_again"))
