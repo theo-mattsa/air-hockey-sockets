@@ -92,7 +92,7 @@ def game_logic_thread(game_id:str, game_state:dict):
             elif game_state["ball"].bottom >= HEIGHT:
                 game_state["winner_id"] = 1 
             
-            if game_state["winner_id"] is not None:
+            if game_state["winner_id"] is not None and game_state["connected_players"] == 2:
                 print(f'Jogo {game_id}: Jogador {game_state["winner_id"]+1} venceu!')
         
         time.sleep(1/60)  # 60 FPS
@@ -110,7 +110,6 @@ def countdown_thread(game_id:str, game_state:dict):
             print(f"Jogo {game_id}: Countdown = {game_state['countdown']+1}")
         else:
             game_state["game_started"] = True
-            print(f"Jogo {game_id}: Iniciado!")
             break
     
     print(f"Countdown do jogo {game_id} finalizado")
