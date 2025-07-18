@@ -197,12 +197,12 @@ def client_thread(conn:socket.socket, game_id:str, player_id:int, game_state:dic
     
     finally:
         print(f"Desconectando {player_name} do jogo {game_id}")
-
+        lock.acquire()
         game_state["connected_players"] -= 1
         if game_state["connected_players"] == 0:
             game_state["active"] = False
             print(f"Jogo {game_id} encerrado - sem jogadores")
-        
+        lock.release()
         try:
             conn.close()
         except:
