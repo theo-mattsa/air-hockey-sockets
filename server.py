@@ -39,7 +39,8 @@ def setup_game_state() -> tuple[dict, str]:
         "player_names": ["", ""],
         "connected_players": 0,
         "active": True,
-        "play_again_votes": 0
+        "play_again_votes": 0,
+        "player_leaved": False
     }
     
     game_id = str(randint(1000, 9999))
@@ -199,6 +200,7 @@ def client_thread(conn:socket.socket, game_id:str, player_id:int, game_state:dic
         print(f"Desconectando {player_name} do jogo {game_id}")
         lock.acquire()
         game_state["connected_players"] -= 1
+        game_state["player_leaved"] = True
         if game_state["connected_players"] == 0:
             game_state["active"] = False
             print(f"Jogo {game_id} encerrado - sem jogadores")
