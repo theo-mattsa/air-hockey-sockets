@@ -53,14 +53,6 @@ def game_logic_thread(game_id:str, game_state:dict):
 
     print(f"Iniciando lógica do jogo {game_id}")
 
-    # Permanece no loop até que o jogo comece
-    while True:
-        if game_state["game_started"]:
-            countdown_logic = threading.Thread(target=countdown_thread, args=(game_id, game_state))
-            countdown_logic.start()
-            break
-        time.sleep(1/60)  # 60 FPS
-
     while game_state["active"]:
 
         # Verifica se a contagem regressiva finalizou e se não há vencedor 
@@ -147,8 +139,12 @@ def client_thread(conn:socket.socket, game_id:str, player_id:int, game_state:dic
         lock.release()
         
         # Se ambos jogadores estão conectados, inicia countdown
-        if game_state["connected_players"] == 2:
+        lock.acquire()
+        if game_state["connected_players"] == 2 and not game_state["game_started"]:
+            countdown_logic = threading.Thread(target=countdown_thread, args=(game_id, game_state))
+            countdown_logic.start()
             game_state["game_started"] = True
+        lock.release()
         
         # Loop principal do cliente
         while game_state["active"]:
