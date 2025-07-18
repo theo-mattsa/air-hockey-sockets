@@ -101,13 +101,17 @@ def redraw_window(win, p1, p2, ball, winner, players_online, countdown_val, butt
     
     pygame.display.flip()
 
-def get_winner_text(winner, player_id):
-    """Converte texto de vitória para perspectiva do jogador"""
-    if winner == "Jogador 1 Venceu!":
-        return "Você ganhou!" if player_id == 0 else "Você perdeu!"
-    elif winner == "Jogador 2 Venceu!":
-        return "Você perdeu!" if player_id == 0 else "Você ganhou!"
-    return winner
+def get_winner_text(winner_id:int, player_id:int):
+    """
+    Retorna "Você perdeu!" se o jogador perdeu, "Você ganhou!" se o jogador ganhou ou 
+    None se ainda não houver um vencedor.
+    """
+    if winner_id == None:
+        return None
+    elif winner_id == player_id:
+        return "Você ganhou!"
+    else:
+        return "Você perdeu!"
 
 def main():
     # Configuração de conexão
@@ -128,7 +132,7 @@ def main():
     # Recebe ID do jogador
     try:
         player_id = pickle.loads(client_socket.recv(2048))
-        print(f"Sou o jogador {player_id}")
+        print(f"Sou o jogador {player_id+1}")
     except Exception as e:
         print(f"Erro ao receber ID: {e}")
         pygame.quit()
@@ -190,64 +194,65 @@ def main():
     running = True
     
     print("Entrando no loop principal...")
-    
+    winner_text = None
     while running:
         clock.tick(60)
         
-        try:
-            # Processar eventos
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    running = False
-                
-                if event.type == pygame.MOUSEBUTTONDOWN:
-                    # Recebe estado atual para verificar winner
+        # try:
+        #     game_state = pickle.loads(client_socket.recv(4096))
+        # Processar eventos
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+            
+            if winner_text is not None and event.type == pygame.MOUSEBUTTONDOWN:
+                # Recebe estado atual para verificar winner
+                if play_again_button.collidepoint(event.pos) and not voted_for_reset:
                     try:
-                        game_state = pickle.loads(client_socket.recv(4096))
-                        if game_state.get("winner") and not voted_for_reset:
-                            if play_again_button.collidepoint(event.pos):
-                                client_socket.send(pickle.dumps("play_again"))
-                                voted_for_reset = True
-                                print("Voto para reiniciar enviado")
-                                continue
-                    except:
-                        pass
+                        client_socket.send(pickle.dumps("play_again"))
+                        voted_for_reset = True
+                        print("Voto para reiniciar enviado")
+                        continue
+                    except Exception as e:
+                        print(f"Erro ao enviar voto: {e}")
             
-            # Controle das raquetes
-            keys = pygame.key.get_pressed()
-            if keys[pygame.K_LEFT] and my_paddle.left > 0:
-                my_paddle.x -= PADDLE_SPEED
-            if keys[pygame.K_RIGHT] and my_paddle.right < WIDTH:
-                my_paddle.x += PADDLE_SPEED
-            
+        # Controle dos paddles
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_LEFT] and my_paddle.left > 0:
+            my_paddle.x -= PADDLE_SPEED
+        if keys[pygame.K_RIGHT] and my_paddle.right < WIDTH:
+            my_paddle.x += PADDLE_SPEED
+        
+        try:
             # Envia posição da raquete
             client_socket.send(pickle.dumps(my_paddle))
             
             # Recebe estado do jogo
-            game_state = pickle.loads(client_socket.recv(4096))
-            
-            if not game_state:
+            data = client_socket.recv(4096)
+            if not data:
                 print("Estado do jogo vazio - desconectando")
                 break
             
+            game_state = pickle.loads(data)
+            
             # Extrai informações do estado
-            p1_server = game_state.get("paddles", [my_paddle, my_paddle])[0]
-            p2_server = game_state.get("paddles", [my_paddle, my_paddle])[1]
-            ball_server = game_state.get("ball", pygame.Rect(WIDTH/2, HEIGHT/2, BALL_RADIUS*2, BALL_RADIUS*2))
-            winner = game_state.get("winner")
-            players_online = game_state.get("connected_players", 0)
-            countdown = game_state.get("countdown", -1)
-            player_names = game_state.get("player_names", ["", ""])
+            p1_server = game_state.get("paddles")[0]
+            p2_server = game_state.get("paddles")[1]
+            ball_server = game_state.get("ball")
+            winner_id = game_state.get("winner_id")
+            players_online = game_state.get("connected_players")
+            countdown = game_state.get("countdown")
+            player_names = game_state.get("player_names")
             
             # Nome do oponente
-            opponent_name = player_names[1 - player_id] if len(player_names) > 1 else ""
+            opponent_name = player_names[1 - player_id]
             
             # Reset do voto se jogo reiniciou
-            if not winner:
+            if winner_id == None:
                 voted_for_reset = False
             
             # Texto de vitória personalizado
-            winner_text = get_winner_text(winner, player_id) if winner else None
+            winner_text = get_winner_text(winner_id, player_id)
             
             # Renderização
             redraw_window(screen, p1_server, p2_server, ball_server, 
