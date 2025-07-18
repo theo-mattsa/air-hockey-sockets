@@ -61,7 +61,7 @@ def game_logic_thread(game_id:str, game_state:dict):
     while game_state["active"]:
 
         # Verifica se a contagem regressiva finalizou e se não há vencedor 
-        if game_state["countdown"] <= 0 and game_state["winner_id"] != None:
+        if game_state["countdown"] <= 0 and game_state["winner_id"] is None:
             ball_speed_x, ball_speed_y = game_state["ball_speed"]
             
             # Aumenta velocidade gradualmente
@@ -96,8 +96,8 @@ def game_logic_thread(game_id:str, game_state:dict):
             elif game_state["ball"].bottom >= HEIGHT:
                 game_state["winner_id"] = 1 
             
-            if game_state["winner_id"] != None:
-                print(f"Jogo {game_id}: Jogador {game_state["winner_id"]+1} venceu!")
+            if game_state["winner_id"] is not None:
+                print(f'Jogo {game_id}: Jogador {game_state["winner_id"]+1} venceu!')
         
         time.sleep(1/60)  # 60 FPS
     
@@ -169,7 +169,7 @@ def client_thread(conn: socket.socket, game_id:str, player_id:int, game_state:di
                             pygame.Rect(WIDTH/2 - PADDLE_WIDTH/2, 20, PADDLE_WIDTH, PADDLE_HEIGHT)
                         ]
                         game_state["ball"] = pygame.Rect(WIDTH/2 - BALL_RADIUS, HEIGHT/2 - BALL_RADIUS, BALL_RADIUS * 2, BALL_RADIUS * 2)
-                        game_state["winner"] = None
+                        game_state["winner_id"] = None
                         game_state["game_started"] = False
                         game_state["countdown"] = 3
                         game_state["ball_speed"] = [BALL_SPEED_X_INITIAL, BALL_SPEED_Y_INITIAL]
