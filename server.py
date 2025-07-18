@@ -1,5 +1,5 @@
 import socket
-from _thread import *
+import threading
 import pickle
 import pygame
 import time
@@ -15,6 +15,8 @@ BALL_RADIUS = 8
 BALL_SPEED_X_INITIAL, BALL_SPEED_Y_INITIAL = 4, 4
 SPEED_INCREASE_PER_FRAME = 0.001
 MAX_SPEED = 12
+
+lock = threading.Lock()
 
 # Inicializar pygame para usar Rect
 pygame.init()
@@ -54,7 +56,8 @@ def game_logic_thread(game_id:str, game_state:dict):
     # Permanece no loop até que o jogo comece
     while True:
         if game_state["game_started"]:
-            start_new_thread(countdown_thread, (game_id, game_state))
+            countdown_logic = threading.Thread(target=countdown_thread, args=(game_id, game_state))
+            countdown_logic.start()
             break
         time.sleep(1/60)  # 60 FPS
 
@@ -119,11 +122,11 @@ def countdown_thread(game_id:str, game_state:dict):
     
     print(f"Countdown do jogo {game_id} finalizado")
 
-def client_thread(conn: socket.socket, game_id:str, player_id:int, game_state:dict):
+def client_thread(conn:socket.socket, game_id:str, player_id:int, game_state:dict):
     """
     Gerencia cliente individual
     """
-
+    global lock
     try:
         print(f"Cliente conectado: Jogo {game_id}, Jogador {player_id+1}")
         
@@ -138,8 +141,10 @@ def client_thread(conn: socket.socket, game_id:str, player_id:int, game_state:di
             player_name = "Fulano"
         game_state["player_names"][player_id] = player_name
         print(f"Jogador {player_id+1} do jogo {game_id} definido como: {player_name}")
-            
+
+        lock.acquire()  
         game_state["connected_players"] += 1
+        lock.release()
         
         # Se ambos jogadores estão conectados, inicia countdown
         if game_state["connected_players"] == 2:
@@ -158,7 +163,10 @@ def client_thread(conn: socket.socket, game_id:str, player_id:int, game_state:di
                 received_data = pickle.loads(data)
                 
                 if isinstance(received_data, str) and received_data == "play_again":
+                    lock.acquire()
                     game_state["play_again_votes"] += 1
+                    lock.release()
+
                     print(f"Voto para reiniciar jogo {game_id}: {game_state['play_again_votes']}/2")
                     
                     # Se ambos votaram, reinicia o jogo
@@ -174,11 +182,14 @@ def client_thread(conn: socket.socket, game_id:str, player_id:int, game_state:di
                         game_state["countdown"] = 3
                         game_state["ball_speed"] = [BALL_SPEED_X_INITIAL, BALL_SPEED_Y_INITIAL]
                         game_state["play_again_votes"] = 0
-                        start_new_thread(countdown_thread, (game_id, game_state))
+                        countdown_logic = threading.Thread(target=countdown_thread, args=(game_id, game_state))
+                        countdown_logic.start()
                         
                 elif isinstance(received_data, pygame.Rect):
                     # Atualiza posição da raquete
+                    lock.acquire()
                     game_state["paddles"][player_id] = received_data
+                    lock.release()
                 
             except Exception as e:
                 print(f"Erro na comunicação com {player_name}: {e}")
@@ -239,10 +250,12 @@ def main():
                 print(f"Criando novo jogo {game_id}")
                 
                 # Inicia thread de lógica do jogo
-                start_new_thread(game_logic_thread, (game_id, game_state))
+                game_logic = threading.Thread(target=game_logic_thread, args=(game_id, game_state))
+                game_logic.start()
             
             # Inicia thread do cliente
-            start_new_thread(client_thread, (conn, game_id, player_id, game_state))
+            client_logic = threading.Thread(target=client_thread, args=(conn, game_id, player_id, game_state))
+            client_logic.start()
             
     except KeyboardInterrupt:
         print("\nServidor interrompido pelo usuário")
