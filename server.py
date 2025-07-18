@@ -170,6 +170,7 @@ def client_thread(conn:socket.socket, game_id:str, player_id:int, game_state:dic
                     print(f"Voto para reiniciar jogo {game_id}: {game_state['play_again_votes']}/2")
                     
                     # Se ambos votaram, reinicia o jogo
+                    lock.acquire()
                     if game_state["play_again_votes"] >= 2:
                         print(f"Reiniciando jogo {game_id}")
                         game_state["paddles"] = [
@@ -184,7 +185,7 @@ def client_thread(conn:socket.socket, game_id:str, player_id:int, game_state:dic
                         game_state["play_again_votes"] = 0
                         countdown_logic = threading.Thread(target=countdown_thread, args=(game_id, game_state))
                         countdown_logic.start()
-                        
+                    lock.release()
                 elif isinstance(received_data, pygame.Rect):
                     # Atualiza posição da raquete
                     lock.acquire()

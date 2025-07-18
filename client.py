@@ -198,8 +198,6 @@ def main():
     while running:
         clock.tick(60)
         
-        # try:
-        #     game_state = pickle.loads(client_socket.recv(4096))
         # Processar eventos
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
