@@ -199,16 +199,22 @@ def main():
     
     try:
         load_dotenv()
-        server_ip = os.getenv("SERVER_IP")
-        server_port = int(os.getenv("SERVER_PORT"))
+        server_ip = os.getenv("SERVER_IP", "localhost")
+        server_port = int(os.getenv("SERVER_PORT", "5555"))
         client_socket.connect((server_ip, server_port))
         print(f"Conectado ao servidor: {server_ip}:{server_port}")
     except socket.error as e:
         print(f"Erro de conexão: {e}")
-        return
+        pygame.quit()
+        sys.exit()
         
-    player_id = pickle.loads(client_socket.recv(2048))
-    print(f"ID do jogador: {player_id}")
+    try:
+        player_id = pickle.loads(client_socket.recv(2048))
+        print(f"ID do jogador: {player_id}")
+    except Exception as e:
+        print(f"Erro ao receber ID do jogador: {e}")
+        pygame.quit()
+        sys.exit()
 
     player_name = ""
     input_box = pygame.Rect(WIDTH/2 - 200, HEIGHT/2 - 25, 400, 50)
@@ -237,27 +243,41 @@ def main():
                 elif event.key == pygame.K_BACKSPACE:
                     player_name = player_name[:-1]
                 else:
-                    if input_font.size(player_name + event.unicode)[0] < input_box.width - 20:
+                    if len(player_name) < 20 and event.unicode.isprintable():
                         player_name += event.unicode
         
         draw_name_input_screen(screen, player_name, input_box, ok_button, active)
 
     pygame.display.set_caption(f"Pong - {player_name}")
-    client_socket.send(pickle.dumps(player_name))
+    
+    try:
+        client_socket.send(pickle.dumps(player_name))
+    except Exception as e:
+        print(f"Erro ao enviar nome: {e}")
+        pygame.quit()
+        sys.exit()
     
     # Receber estado inicial
-    initial_state = pickle.loads(client_socket.recv(4096))
+    try:
+        initial_state = pickle.loads(client_socket.recv(4096))
+        print("Estado inicial recebido")
+    except Exception as e:
+        print(f"Erro ao receber estado inicial: {e}")
+        pygame.quit()
+        sys.exit()
+    
     paddle1 = pygame.Rect(0, 0, PADDLE_WIDTH, PADDLE_HEIGHT)
     paddle2 = pygame.Rect(0, 0, PADDLE_WIDTH, PADDLE_HEIGHT)
     play_again_button = pygame.Rect(WIDTH/2 - 150, HEIGHT/2 + 20, 300, 60)
     voted_for_reset = False
     
-    if initial_state:
+    if initial_state and "paddles" in initial_state:
         paddle1.x, paddle1.y = initial_state["paddles"][0].x, initial_state["paddles"][0].y
         paddle2.x, paddle2.y = initial_state["paddles"][1].x, initial_state["paddles"][1].y
     else: 
         print("Erro: Estado inicial inválido")
-        running = False
+        pygame.quit()
+        sys.exit()
 
     my_paddle = paddle1 if player_id == 0 else paddle2
     clock = pygame.time.Clock()
@@ -266,6 +286,30 @@ def main():
         clock.tick(60)
         
         try:
+            # Processar eventos
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    running = False
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    try:
+                        # Receber estado do jogo primeiro
+                        game_state = pickle.loads(client_socket.recv(4096))
+                        winner = game_state.get("winner")
+                        
+                        if winner and not voted_for_reset and play_again_button.collidepoint(event.pos):
+                            client_socket.send(pickle.dumps("play again"))
+                            voted_for_reset = True
+                            continue
+                    except:
+                        pass
+            
+            # Movimento da raquete
+            keys = pygame.key.get_pressed()
+            if keys[pygame.K_LEFT] and my_paddle.left > 0:
+                my_paddle.x -= PADDLE_SPEED
+            if keys[pygame.K_RIGHT] and my_paddle.right < WIDTH:
+                my_paddle.x += PADDLE_SPEED
+            
             # Enviar estado da raquete
             client_socket.send(pickle.dumps(my_paddle))
             
@@ -273,47 +317,33 @@ def main():
             game_state = pickle.loads(client_socket.recv(4096))
             if not game_state:
                 print("Conexão com servidor perdida")
-                running = False
                 break
             
             # Processar estado
             countdown = game_state.get("countdown", -1)
             player_names = game_state.get("player_names", ["", ""])
-            opponent_name = player_names[1 - player_id]
-            p1_server = game_state["paddles"][0]
-            p2_server = game_state["paddles"][1]
-            ball_server = game_state["ball"]
-            winner = game_state["winner"]
-            players_online = game_state.get("connected_players", 0)  # Campo corrigido
+            opponent_name = player_names[1 - player_id] if len(player_names) > 1 else "Oponente"
+            
+            p1_server = game_state.get("paddles", [paddle1, paddle2])[0]
+            p2_server = game_state.get("paddles", [paddle1, paddle2])[1]
+            ball_server = game_state.get("ball", pygame.Rect(WIDTH/2, HEIGHT/2, BALL_RADIUS*2, BALL_RADIUS*2))
+            winner = game_state.get("winner")
+            players_online = game_state.get("connected_players", 0)
+
+            # Verificar se o jogo resetou
+            if not winner:
+                voted_for_reset = False
 
             # Verificar se o jogo terminou
             if winner:
                 winner_text = get_winner_text(winner, player_id)
             else:
                 winner_text = None
-                voted_for_reset = False
 
             # Preparar elementos visuais
-            drawable_p1 = p1_server.copy()
-            drawable_p2 = p2_server.copy()
-            drawable_ball = ball_server.copy()
-            
-            # Tratamento de eventos
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    running = False
-                if event.type == pygame.MOUSEBUTTONDOWN:
-                    if winner_text and not voted_for_reset and play_again_button.collidepoint(event.pos):
-                        client_socket.send(pickle.dumps("play again"))
-                        voted_for_reset = True
-            
-            # Movimento da raquete
-            if not winner_text and countdown < 1:
-                keys = pygame.key.get_pressed()
-                if keys[pygame.K_LEFT] and my_paddle.left > 0:
-                    my_paddle.x -= PADDLE_SPEED
-                if keys[pygame.K_RIGHT] and my_paddle.right < WIDTH:
-                    my_paddle.x += PADDLE_SPEED
+            drawable_p1 = p1_server.copy() if p1_server else paddle1
+            drawable_p2 = p2_server.copy() if p2_server else paddle2
+            drawable_ball = ball_server.copy() if ball_server else pygame.Rect(WIDTH/2, HEIGHT/2, BALL_RADIUS*2, BALL_RADIUS*2)
             
             # Renderização
             redraw_window(
@@ -323,7 +353,7 @@ def main():
                 drawable_ball, 
                 winner_text, 
                 players_online, 
-                countdown,  # Sem subtração
+                countdown,
                 play_again_button, 
                 voted_for_reset, 
                 opponent_name
@@ -331,8 +361,12 @@ def main():
                 
         except (ConnectionResetError, EOFError) as e:
             print(f"Erro de conexão: {e}")
-            running = False
+            break
+        except Exception as e:
+            print(f"Erro geral: {e}")
+            break
 
+    client_socket.close()
     pygame.quit()
     sys.exit()
 
