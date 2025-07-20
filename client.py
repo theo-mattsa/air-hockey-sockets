@@ -47,7 +47,7 @@ def draw_name_input_screen(win, text, input_box, ok_button, is_active):
     win.blit(text_surface, (input_box.x + 10, input_box.y + 10))
     
     # Botão OK
-    pygame.draw.rect(win, GREEN_BTN, ok_button)
+    pygame.draw.rect(win, GREEN_BTN, ok_button, border_radius=10)
     ok_text = small_font.render("OK", True, WHITE)
     ok_rect = ok_text.get_rect(center=ok_button.center)
     win.blit(ok_text, ok_rect)
@@ -109,7 +109,7 @@ def redraw_window(win, p1, p2, ball, winner, players_online, countdown_val, butt
         
         # Botão de reiniciar
         button_color = (150, 150, 0) if voted else (0, 150, 0)
-        pygame.draw.rect(win, button_color, button)
+        pygame.draw.rect(win, button_color, button, border_radius=10)
         
         button_text = "Aguardando..." if voted else "Novo Jogo"
         button_surface = small_font.render(button_text, True, WHITE)
