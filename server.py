@@ -94,6 +94,28 @@ class Game:
         with self.lock:
             self.state["active"] = False
 
+def countdown_thread(game: Game):
+    """Faz a contagem regressiva antes do jogo começar"""
+    print(f"Iniciando countdown para jogo {game.game_id}")
+    
+    while True:
+        with game.lock:
+            is_active = game.state["active"]
+            current_countdown = game.state["countdown"]
+        if not is_active:
+            break
+        if current_countdown > 0:
+            time.sleep(1)
+            with game.lock:
+                game.state["countdown"] -= 1
+                print(f"Jogo {game.game_id}: Countdown = {game.state['countdown']+1}")
+        else:
+            with game.lock:
+                game.state["game_started"] = True
+            break
+    
+    print(f"Countdown do jogo {game.game_id} finalizado")
+
 def setup_game_state() -> tuple[dict, str]:
     """
     Configura o estado inicial do jogo.
@@ -120,75 +142,85 @@ def setup_game_state() -> tuple[dict, str]:
 
 def game_logic_thread(game: Game):
     """
-    Implementa a lógica de movimentação da bola (verificando os casos de vitória/derrota) 
-    para o jogo fornecido enquanto esse estiver ativo. 
+    Controla o movimento da bola e verifica quem ganhou.
     """
 
     print(f"Iniciando lógica do jogo {game.game_id}")
 
-    while game.state["active"]:
+    while True:
+        # 1. Leitura rápida do estado com lock mínimo
+        with game.lock:
+            is_active = game.state["active"]
+            countdown = game.state["countdown"]
+            winner_id = game.state["winner_id"]
+        
+        # Verifica se deve continuar
+        if not is_active:
+            break
 
-        # Verifica se a contagem regressiva finalizou e se não há vencedor 
-        if game.state["countdown"] <= 0 and game.state["winner_id"] is None:
-            # Usa controle do jogo para atualizar tudo de forma segura
+        # Só processa física se jogo está rodando
+        if countdown <= 0 and winner_id is None:
+            
+            # 2. Captura snapshot do estado atual com lock mínimo
             with game.lock:
-                ball_speed_x, ball_speed_y = game.state["ball_speed"]
-                
-                # Aumenta velocidade gradualmente
-                if abs(ball_speed_y) < MAX_SPEED:
-                    new_speed_y = abs(ball_speed_y) + SPEED_INCREASE_PER_FRAME
-                    ball_speed_y = math.copysign(new_speed_y, ball_speed_y)
-                
-                if abs(ball_speed_x) < MAX_SPEED:
-                    new_speed_x = abs(ball_speed_x) + SPEED_INCREASE_PER_FRAME
-                    ball_speed_x = math.copysign(new_speed_x, ball_speed_x)
-                
-                # Atualiza posição da bola
-                game.state["ball"].x += ball_speed_x
-                game.state["ball"].y += ball_speed_y
-                
-                # Colisões com paredes laterais
-                if game.state["ball"].left <= 0 or game.state["ball"].right >= WIDTH:
-                    ball_speed_x *= -1
-                
-                # Colisões com raquetes
-                if (game.state["ball"].colliderect(game.state["paddles"][0]) and ball_speed_y > 0):
-                    ball_speed_y = -abs(ball_speed_y)
-                if (game.state["ball"].colliderect(game.state["paddles"][1]) and ball_speed_y < 0):
-                    ball_speed_y = abs(ball_speed_y)
-                
-                # Atualiza velocidade
+                current_ball = game.state["ball"].copy()
+                current_speed = game.state["ball_speed"].copy()
+                current_paddles = [paddle.copy() for paddle in game.state["paddles"]]
+                connected_players = game.state["connected_players"]
+            
+            ball_speed_x, ball_speed_y = current_speed
+            
+            # Aumenta velocidade gradualmente
+            if abs(ball_speed_y) < MAX_SPEED:
+                new_speed_y = abs(ball_speed_y) + SPEED_INCREASE_PER_FRAME
+                ball_speed_y = math.copysign(new_speed_y, ball_speed_y)
+            
+            if abs(ball_speed_x) < MAX_SPEED:
+                new_speed_x = abs(ball_speed_x) + SPEED_INCREASE_PER_FRAME
+                ball_speed_x = math.copysign(new_speed_x, ball_speed_x)
+            
+            # Calcula nova posição da bola
+            new_ball_x = current_ball.x + ball_speed_x
+            new_ball_y = current_ball.y + ball_speed_y
+            
+            # Colisões com paredes laterais
+            if new_ball_x <= 0 or new_ball_x >= WIDTH - current_ball.width:
+                ball_speed_x *= -1
+                new_ball_x = current_ball.x + ball_speed_x  # Recalcula posição
+            
+            # Cria rect temporário para teste de colisão
+            temp_ball = pygame.Rect(new_ball_x, new_ball_y, current_ball.width, current_ball.height)
+            
+            # Colisões com raquetes
+            if (temp_ball.colliderect(current_paddles[0]) and ball_speed_y > 0):
+                ball_speed_y = -abs(ball_speed_y)
+                new_ball_y = current_ball.y + ball_speed_y
+            elif (temp_ball.colliderect(current_paddles[1]) and ball_speed_y < 0):
+                ball_speed_y = abs(ball_speed_y)
+                new_ball_y = current_ball.y + ball_speed_y
+            
+            # Verifica condições de vitória
+            new_winner_id = None
+            if new_ball_y <= 0:
+                new_winner_id = 0
+            elif new_ball_y >= HEIGHT - current_ball.height:
+                new_winner_id = 1
+            
+            #  Aplicação dos resultados com lock mínimo
+            with game.lock:
+                game.state["ball"].x = new_ball_x
+                game.state["ball"].y = new_ball_y
                 game.state["ball_speed"] = [ball_speed_x, ball_speed_y]
                 
-                # Verifica condições de vitória
-                if game.state["ball"].top <= 0:
-                    game.state["winner_id"] = 0
-                elif game.state["ball"].bottom >= HEIGHT:
-                    game.state["winner_id"] = 1 
-                
-                if game.state["winner_id"] is not None and game.state["connected_players"] == 2:
-                    print(f'Jogo {game.game_id}: Jogador {game.state["winner_id"]+1} venceu!')
+                if new_winner_id is not None:
+                    game.state["winner_id"] = new_winner_id
+                    if connected_players == 2:
+                        print(f'Jogo {game.game_id}: Jogador {new_winner_id+1} venceu!')
         
-        time.sleep(1/60)  # 60 FPS
-    
+        time.sleep(1/60)  # 60 quadros por segundo
     print(f"Encerrando lógica do jogo {game.game_id}")
 
-def countdown_thread(game: Game):
-    """Thread para contagem regressiva"""
-    print(f"Iniciando countdown para jogo {game.game_id}")
-    
-    while game.state["active"]: 
-        if game.state["countdown"] > 0:
-            time.sleep(1)
-            with game.lock:
-                game.state["countdown"] -= 1
-                print(f"Jogo {game.game_id}: Countdown = {game.state['countdown']+1}")
-        else:
-            with game.lock:
-                game.state["game_started"] = True
-            break
-    
-    print(f"Countdown do jogo {game.game_id} finalizado")
+
 
 def client_thread(conn: socket.socket, game: Game, player_id: int):
     """
