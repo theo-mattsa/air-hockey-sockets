@@ -47,14 +47,14 @@ def draw_name_input_screen(win, text, input_box, ok_button, is_active):
     win.blit(text_surface, (input_box.x + 10, input_box.y + 10))
     
     # Botão OK
-    pygame.draw.rect(win, GREEN_BTN, ok_button)
+    pygame.draw.rect(win, GREEN_BTN, ok_button, border_radius=10)
     ok_text = small_font.render("OK", True, WHITE)
     ok_rect = ok_text.get_rect(center=ok_button.center)
     win.blit(ok_text, ok_rect)
     
     pygame.display.flip()
 
-def redraw_window(win, p1, p2, ball, winner, players_online, countdown_val, button, voted, opponent_name, no_opponent):
+def redraw_window(win, p1, p2, ball, winner, players_online, countdown_val, button, voted, opponent_name, no_opponent, player_id):
     """Desenha o estado atual do jogo"""
     win.fill(BLACK)
     
@@ -85,10 +85,21 @@ def redraw_window(win, p1, p2, ball, winner, players_online, countdown_val, butt
     
     # Jogo iniciado
     elif countdown_val == 0 and not winner:
-        # Elementos do jogo
-        pygame.draw.rect(win, BLUE, p1)
-        pygame.draw.rect(win, RED, p2)
-        pygame.draw.ellipse(win, WHITE, ball)
+        # Cada jogador vê seu paddle embaixo
+        if player_id == 0:
+            # Jogador 0 - Seu paddle (p1) embaixo em azul
+            pygame.draw.rect(win, BLUE, p1)
+            # O oponente (p2) em cima em vermelho
+            pygame.draw.rect(win, RED, p2)
+            pygame.draw.ellipse(win, WHITE, ball)
+        else:
+            # Inverte a visualização para o jogador 1
+            my_paddle_inverted = pygame.Rect(p2.x, HEIGHT - 20 - PADDLE_HEIGHT, p2.width, p2.height)
+            opponent_paddle_inverted = pygame.Rect(p1.x, 20, p1.width, p1.height)
+            ball_inverted = pygame.Rect(ball.x, HEIGHT - ball.y - ball.height, ball.width, ball.height)   
+            pygame.draw.rect(win, BLUE, my_paddle_inverted)
+            pygame.draw.rect(win, RED, opponent_paddle_inverted)
+            pygame.draw.ellipse(win, WHITE, ball_inverted)
     
     # Tela de vitória
     if winner and not no_opponent:
@@ -98,7 +109,7 @@ def redraw_window(win, p1, p2, ball, winner, players_online, countdown_val, butt
         
         # Botão de reiniciar
         button_color = (150, 150, 0) if voted else (0, 150, 0)
-        pygame.draw.rect(win, button_color, button)
+        pygame.draw.rect(win, button_color, button, border_radius=10)
         
         button_text = "Aguardando..." if voted else "Novo Jogo"
         button_surface = small_font.render(button_text, True, WHITE)
@@ -261,7 +272,7 @@ def main():
             # Renderização
             redraw_window(screen, p1_server, p2_server, ball_server, 
                          winner_text, players_online, countdown, 
-                         play_again_button, voted_for_reset, opponent_name, no_opponent)
+                         play_again_button, voted_for_reset, opponent_name, no_opponent, player_id)
             
         except (ConnectionResetError, EOFError, socket.error) as e:
             print(f"Erro de conexão: {e}")
