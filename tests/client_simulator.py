@@ -11,12 +11,16 @@ import pickle
 import random
 import os
 import sys
+from datetime import datetime
 
 # Adicionar o diretório pai ao path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+# Importar configurações
+from config import SERVER_HOST, SERVER_PORT
+
 class GameClientSimulator:
-    def __init__(self, host='localhost', port=5555, client_id=None):
+    def __init__(self, host=SERVER_HOST, port=SERVER_PORT, client_id=None):
         self.host = host
         self.port = port
         self.client_id = client_id or f"bot_{random.randint(1000, 9999)}"
@@ -164,7 +168,7 @@ class GameClientSimulator:
 
 
 class LoadTestManager:
-    def __init__(self, host='localhost', port=5555):
+    def __init__(self, host=SERVER_HOST, port=SERVER_PORT):
         self.host = host
         self.port = port
         self.results = {
@@ -173,10 +177,60 @@ class LoadTestManager:
             'total_messages': 0,
             'test_duration': 0
         }
+        self.test_report = []  # Lista para armazenar relatório detalhado
+    
+    def add_to_report(self, message):
+        """Adiciona uma linha ao relatório"""
+        timestamp = datetime.now().strftime("%H:%M:%S")
+        self.test_report.append(f"[{timestamp}] {message}")
+        print(message)  # Também exibe no console
+    
+    def save_report_to_file(self, test_type="simulation"):
+        """Salva o relatório em arquivo TXT"""
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = f"relatorio_client_simulator_{test_type}_{timestamp}.txt"
+        filepath = os.path.join(os.path.dirname(__file__), filename)
+        
+        with open(filepath, 'w', encoding='utf-8') as f:
+            f.write("=" * 80 + "\n")
+            f.write("           RELATÓRIO DE SIMULAÇÃO DE CLIENTES - PONG SOCKETS\n")
+            f.write("=" * 80 + "\n\n")
+            
+            f.write(f"Data/Hora: {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}\n")
+            f.write(f"Tipo de Teste: {test_type.upper()}\n")
+            f.write(f"Servidor: {self.host}:{self.port}\n\n")
+            
+            f.write("RESUMO DOS RESULTADOS:\n")
+            f.write("-" * 40 + "\n")
+            f.write(f"Clientes bem-sucedidos: {self.results['successful_clients']}\n")
+            f.write(f"Clientes com falha: {self.results['failed_clients']}\n")
+            f.write(f"Total de mensagens: {self.results['total_messages']}\n")
+            f.write(f"Duração do teste: {self.results['test_duration']:.2f}s\n")
+            
+            if self.results['successful_clients'] + self.results['failed_clients'] > 0:
+                total_clients = self.results['successful_clients'] + self.results['failed_clients']
+                success_rate = (self.results['successful_clients'] / total_clients) * 100
+                f.write(f"Taxa de sucesso: {success_rate:.1f}%\n")
+            
+            if self.results['test_duration'] > 0 and self.results['total_messages'] > 0:
+                throughput = self.results['total_messages'] / self.results['test_duration']
+                f.write(f"Throughput: {throughput:.1f} mensagens/segundo\n")
+            
+            f.write("\nDETALHES DA EXECUÇÃO:\n")
+            f.write("-" * 40 + "\n")
+            for line in self.test_report:
+                f.write(line + "\n")
+            
+            f.write("\n" + "=" * 80 + "\n")
+            f.write("Relatório gerado automaticamente pelo Client Simulator\n")
+            f.write("=" * 80 + "\n")
+        
+        self.add_to_report(f"📄 Relatório salvo em: {filename}")
+        return filepath
     
     def run_concurrent_game_simulation(self, num_clients=10, duration=60):
         """Executa simulação com múltiplos clientes jogando"""
-        print(f"🎯 Simulando {num_clients} clientes jogando por {duration}s...")
+        self.add_to_report(f"🎯 Iniciando simulação com {num_clients} clientes por {duration}s...")
         
         def client_worker(client_id):
             simulator = GameClientSimulator(self.host, self.port, client_id)
@@ -184,8 +238,10 @@ class LoadTestManager:
             
             if success:
                 self.results['successful_clients'] += 1
+                self.add_to_report(f"✅ Cliente {client_id} concluído com sucesso")
             else:
                 self.results['failed_clients'] += 1
+                self.add_to_report(f"❌ Cliente {client_id} falhou")
         
         start_time = time.time()
         
@@ -203,21 +259,31 @@ class LoadTestManager:
         
         self.results['test_duration'] = time.time() - start_time
         
-        print(f"📊 Resultados da Simulação de Jogo:")
-        print(f"  Clientes bem-sucedidos: {self.results['successful_clients']}")
-        print(f"  Clientes com falha: {self.results['failed_clients']}")
-        print(f"  Taxa de sucesso: {(self.results['successful_clients'] / num_clients) * 100:.1f}%")
-        print(f"  Duração real: {self.results['test_duration']:.1f}s")
+        self.add_to_report(f"📊 Simulação concluída:")
+        self.add_to_report(f"  Clientes bem-sucedidos: {self.results['successful_clients']}")
+        self.add_to_report(f"  Clientes com falha: {self.results['failed_clients']}")
+        
+        if num_clients > 0:
+            success_rate = (self.results['successful_clients'] / num_clients) * 100
+            self.add_to_report(f"  Taxa de sucesso: {success_rate:.1f}%")
+        
+        self.add_to_report(f"  Duração real: {self.results['test_duration']:.1f}s")
+        
+        # Salvar relatório
+        self.save_report_to_file("simulacao_jogo")
     
     def run_stress_test(self, num_clients=20, duration=30, message_rate=5):
         """Executa teste de stress com alta frequência de mensagens"""
-        print(f"🔥 Teste de stress: {num_clients} clientes, {message_rate} msg/s, {duration}s...")
+        self.add_to_report(f"🔥 Iniciando teste de stress: {num_clients} clientes, {message_rate} msg/s, {duration}s...")
         
         def stress_worker(client_id):
             simulator = GameClientSimulator(self.host, self.port, client_id)
             messages = simulator.stress_test_client(duration, message_rate)
             self.results['total_messages'] += messages or 0
+            if messages and messages > 0:
+                self.add_to_report(f"📤 Cliente {client_id}: {messages} mensagens enviadas")
         
+        start_time = time.time()
         threads = []
         for i in range(num_clients):
             thread = threading.Thread(target=stress_worker, args=(f"stress_{i}",))
@@ -228,21 +294,28 @@ class LoadTestManager:
         for thread in threads:
             thread.join()
         
+        self.results['test_duration'] = time.time() - start_time
         total_expected = num_clients * message_rate * duration
         efficiency = (self.results['total_messages'] / total_expected) * 100 if total_expected > 0 else 0
         
-        print(f"📊 Resultados do Teste de Stress:")
-        print(f"  Mensagens enviadas: {self.results['total_messages']}")
-        print(f"  Mensagens esperadas: {total_expected}")
-        print(f"  Eficiência: {efficiency:.1f}%")
-        print(f"  Throughput: {self.results['total_messages'] / duration:.1f} msg/s")
+        self.add_to_report(f"📊 Resultados do Teste de Stress:")
+        self.add_to_report(f"  Mensagens enviadas: {self.results['total_messages']}")
+        self.add_to_report(f"  Mensagens esperadas: {total_expected}")
+        self.add_to_report(f"  Eficiência: {efficiency:.1f}%")
+        
+        if self.results['test_duration'] > 0:
+            throughput = self.results['total_messages'] / self.results['test_duration']
+            self.add_to_report(f"  Throughput: {throughput:.1f} msg/s")
+        
+        # Salvar relatório
+        self.save_report_to_file("teste_stress")
     
     def run_gradual_load_test(self, max_clients=50, step=5, step_duration=30):
         """Teste de carga gradual"""
-        print(f"📈 Teste de carga gradual: 0 até {max_clients} clientes...")
+        self.add_to_report(f"📈 Iniciando teste de carga gradual: 0 até {max_clients} clientes...")
         
         for num_clients in range(step, max_clients + 1, step):
-            print(f"\n🔄 Testando com {num_clients} clientes...")
+            self.add_to_report(f"🔄 Testando com {num_clients} clientes...")
             
             # Reset results for this step
             step_results = {
@@ -270,22 +343,30 @@ class LoadTestManager:
                 thread.join()
             
             success_rate = (step_results['successful_clients'] / num_clients) * 100
-            print(f"  📊 {num_clients} clientes: {success_rate:.1f}% sucesso")
+            self.add_to_report(f"  📊 {num_clients} clientes: {success_rate:.1f}% sucesso")
+            
+            # Atualizar resultados globais
+            self.results['successful_clients'] += step_results['successful_clients']
+            self.results['failed_clients'] += step_results['failed_clients']
             
             # Se a taxa de sucesso cair muito, parar o teste
             if success_rate < 50:
-                print(f"⚠️  Taxa de sucesso muito baixa ({success_rate:.1f}%), parando o teste")
+                self.add_to_report(f"⚠️  Taxa de sucesso muito baixa ({success_rate:.1f}%), parando o teste")
                 break
             
             time.sleep(2)  # Pausa entre steps
+        
+        # Salvar relatório
+        self.save_report_to_file("teste_carga_gradual")
 
 
 def main():
     print("🎮 Pong Socket Game - Simulador de Clientes")
     print("=" * 60)
     
-    manager = LoadTestManager(host='localhost', port=5555)
+    manager = LoadTestManager()
     
+    print(f"Servidor configurado: {SERVER_HOST}:{SERVER_PORT}")
     print("IMPORTANTE: Certifique-se de que o servidor está rodando!")
     print()
     print("Opções de teste:")

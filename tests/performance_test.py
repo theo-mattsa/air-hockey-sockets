@@ -15,12 +15,16 @@ import statistics
 from concurrent.futures import ThreadPoolExecutor
 import matplotlib.pyplot as plt
 import numpy as np
+from datetime import datetime
 
 # Adicionar o diretório pai ao path para importar server
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+# Importar configurações
+from config import SERVER_HOST, SERVER_PORT
+
 class PerformanceTest:
-    def __init__(self, host='localhost', port=5555):
+    def __init__(self, host=SERVER_HOST, port=SERVER_PORT):
         self.host = host
         self.port = port
         self.results = {
@@ -32,10 +36,118 @@ class PerformanceTest:
             'failed_connections': 0,
             'successful_connections': 0
         }
+        self.test_report = []  # Lista para armazenar relatório detalhado
+    
+    def add_to_report(self, message):
+        """Adiciona uma linha ao relatório"""
+        timestamp = datetime.now().strftime("%H:%M:%S")
+        self.test_report.append(f"[{timestamp}] {message}")
+        print(message)  # Também exibe no console
+    
+    def save_report_to_file(self, test_type="performance"):
+        """Salva o relatório em arquivo TXT"""
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = f"relatorio_performance_{test_type}_{timestamp}.txt"
+        filepath = os.path.join(os.path.dirname(__file__), filename)
+        
+        with open(filepath, 'w', encoding='utf-8') as f:
+            f.write("=" * 80 + "\n")
+            f.write("              RELATÓRIO DE PERFORMANCE - PONG SOCKETS\n")
+            f.write("=" * 80 + "\n\n")
+            
+            f.write(f"Data/Hora: {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}\n")
+            f.write(f"Tipo de Teste: {test_type.upper()}\n")
+            f.write(f"Servidor: {self.host}:{self.port}\n\n")
+            
+            f.write("MÉTRICAS DE PERFORMANCE:\n")
+            f.write("-" * 40 + "\n")
+            
+            # Latência
+            if self.results['latency']:
+                avg_latency = statistics.mean(self.results['latency'])
+                min_latency = min(self.results['latency'])
+                max_latency = max(self.results['latency'])
+                median_latency = statistics.median(self.results['latency'])
+                
+                f.write(f"LATÊNCIA:\n")
+                f.write(f"  Média: {avg_latency:.2f}ms\n")
+                f.write(f"  Mediana: {median_latency:.2f}ms\n")
+                f.write(f"  Mínima: {min_latency:.2f}ms\n")
+                f.write(f"  Máxima: {max_latency:.2f}ms\n\n")
+            
+            # Conexões
+            f.write(f"CONEXÕES:\n")
+            f.write(f"  Bem-sucedidas: {self.results['successful_connections']}\n")
+            f.write(f"  Falhadas: {self.results['failed_connections']}\n")
+            
+            total_connections = self.results['successful_connections'] + self.results['failed_connections']
+            if total_connections > 0:
+                success_rate = (self.results['successful_connections'] / total_connections) * 100
+                f.write(f"  Taxa de sucesso: {success_rate:.1f}%\n")
+            
+            if self.results['connection_times']:
+                avg_conn_time = statistics.mean(self.results['connection_times'])
+                f.write(f"  Tempo médio de conexão: {avg_conn_time:.2f}ms\n")
+            f.write("\n")
+            
+            # Recursos do Sistema
+            if self.results['cpu_usage']:
+                avg_cpu = statistics.mean(self.results['cpu_usage'])
+                max_cpu = max(self.results['cpu_usage'])
+                f.write(f"USO DE RECURSOS:\n")
+                f.write(f"  CPU média: {avg_cpu:.1f}%\n")
+                f.write(f"  CPU máxima: {max_cpu:.1f}%\n")
+            
+            if self.results['memory_usage']:
+                avg_memory = statistics.mean(self.results['memory_usage'])
+                max_memory = max(self.results['memory_usage'])
+                f.write(f"  Memória média: {avg_memory:.1f}%\n")
+                f.write(f"  Memória máxima: {max_memory:.1f}%\n\n")
+            
+            # Análise e Recomendações
+            f.write("ANÁLISE DOS RESULTADOS:\n")
+            f.write("-" * 40 + "\n")
+            
+            if self.results['latency']:
+                avg_latency = statistics.mean(self.results['latency'])
+                if avg_latency < 100:
+                    f.write("✅ Latência EXCELENTE (< 100ms)\n")
+                elif avg_latency < 200:
+                    f.write("🟡 Latência BOA (100-200ms)\n")
+                else:
+                    f.write("🔴 Latência ALTA (> 200ms) - Otimização necessária\n")
+            
+            if total_connections > 0:
+                if success_rate > 95:
+                    f.write("✅ Taxa de conexão EXCELENTE (> 95%)\n")
+                elif success_rate > 85:
+                    f.write("🟡 Taxa de conexão BOA (85-95%)\n")
+                else:
+                    f.write("🔴 Taxa de conexão BAIXA (< 85%) - Investigação necessária\n")
+            
+            if self.results['cpu_usage']:
+                if avg_cpu < 70:
+                    f.write("✅ Uso de CPU SUSTENTÁVEL (< 70%)\n")
+                elif avg_cpu < 85:
+                    f.write("🟡 Uso de CPU MODERADO (70-85%)\n")
+                else:
+                    f.write("🔴 Uso de CPU ALTO (> 85%) - Otimização recomendada\n")
+            
+            f.write("\nDETALHES DA EXECUÇÃO:\n")
+            f.write("-" * 40 + "\n")
+            for line in self.test_report:
+                f.write(line + "\n")
+            
+            f.write("\n" + "=" * 80 + "\n")
+            f.write("Relatório gerado automaticamente pelo Performance Test\n")
+            f.write("=" * 80 + "\n")
+        
+        self.add_to_report(f"📄 Relatório salvo em: {filename}")
+        return filepath
     
     def test_latency(self, num_tests=100):
         """Testa a latência de comunicação com o servidor"""
-        print(f"🧪 Testando latência com {num_tests} requests...")
+        self.add_to_report(f"🧪 Iniciando teste de latência com {num_tests} requests...")
         latencies = []
         
         for i in range(num_tests):
@@ -61,10 +173,10 @@ class PerformanceTest:
                 sock.close()
                 
                 if i % 10 == 0:
-                    print(f"  Progress: {i}/{num_tests}")
+                    self.add_to_report(f"  Progresso: {i}/{num_tests} - Latência atual: {latency:.2f}ms")
                 
             except Exception as e:
-                print(f"  Erro na iteração {i}: {e}")
+                self.add_to_report(f"  ❌ Erro na iteração {i}: {e}")
                 continue
         
         self.results['latency'] = latencies
@@ -75,12 +187,15 @@ class PerformanceTest:
             max_latency = max(latencies)
             median_latency = statistics.median(latencies)
             
-            print(f"📊 Resultados de Latência:")
-            print(f"  Média: {avg_latency:.2f}ms")
-            print(f"  Mediana: {median_latency:.2f}ms")
-            print(f"  Mín: {min_latency:.2f}ms")
-            print(f"  Máx: {max_latency:.2f}ms")
-            print(f"  Testes realizados: {len(latencies)}/{num_tests}")
+            self.add_to_report(f"📊 Resultados de Latência:")
+            self.add_to_report(f"  Média: {avg_latency:.2f}ms")
+            self.add_to_report(f"  Mediana: {median_latency:.2f}ms")
+            self.add_to_report(f"  Mín: {min_latency:.2f}ms")
+            self.add_to_report(f"  Máx: {max_latency:.2f}ms")
+            self.add_to_report(f"  Testes realizados: {len(latencies)}/{num_tests}")
+        
+        # Salvar relatório específico de latência
+        self.save_report_to_file("latencia")
     
     def test_concurrent_connections(self, num_connections=50, duration=30):
         """Testa conexões simultâneas"""
@@ -275,33 +390,37 @@ class PerformanceTest:
     
     def run_full_test_suite(self):
         """Executa todos os testes de performance"""
-        print("🚀 Iniciando suite completa de testes de performance...")
-        print("=" * 60)
+        self.add_to_report("🚀 Iniciando suite completa de testes de performance...")
+        self.add_to_report("=" * 60)
         
         # Teste de latência
         self.test_latency(50)
-        print()
+        self.add_to_report("")
         
         # Teste de conexões simultâneas
         self.test_concurrent_connections(20, 15)
-        print()
+        self.add_to_report("")
         
         # Teste de stress
         self.stress_test(10, 60)
-        print()
+        self.add_to_report("")
         
         # Gerar relatório
         self.generate_report()
         
-        print("✅ Todos os testes concluídos!")
+        # Salvar relatório completo
+        self.save_report_to_file("suite_completa")
+        
+        self.add_to_report("✅ Todos os testes concluídos!")
 
 
 if __name__ == "__main__":
     # Configurar teste
-    tester = PerformanceTest(host='localhost', port=5555)
+    tester = PerformanceTest()
     
     print("Pong Socket Game - Testes de Performance e Estabilidade")
     print("=" * 60)
+    print(f"Servidor configurado: {SERVER_HOST}:{SERVER_PORT}")
     print("IMPORTANTE: Certifique-se de que o servidor está rodando!")
     print()
     
