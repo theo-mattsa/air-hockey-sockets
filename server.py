@@ -222,7 +222,10 @@ def client_thread(conn: socket.socket, game: Game, player_id: int):
                 if not data: # Cliente desconectou
                     break
                 time.sleep(0.01) # Simulação da execução da lógica
-                conn.send(pickle.dumps("testando"))
+                try:
+                    conn.send(pickle.dumps("testando"))
+                except BrokenPipeError: # Socket cliente encerrado
+                    break
         else:
             # Salva o nome do jogador no jogo
             game.set_player_name(player_id, player_name)
