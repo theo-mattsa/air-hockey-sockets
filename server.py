@@ -224,7 +224,7 @@ def client_thread(conn: socket.socket, game: Game, player_id: int):
                 time.sleep(0.01) # Simulação da execução da lógica
                 try:
                     conn.send(pickle.dumps("testando"))
-                except BrokenPipeError: # Socket cliente encerrado
+                except ConnectionError: # Socket cliente encerrado
                     break
         else:
             # Salva o nome do jogador no jogo
