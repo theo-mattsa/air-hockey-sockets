@@ -214,8 +214,9 @@ def client_thread(conn: socket.socket, game: Game, player_id: int):
             print(f"Erro ao receber nome: {e}")
             player_name = "Fulano"
         
-        if player_name == "testando":
+        if player_name == "\0testando\0":
             print("Requisição de teste.")
+            game.update_connected_players(1)
             while True:
                 data = conn.recv(2048)
                 if not data: # Cliente desconectou
