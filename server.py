@@ -148,7 +148,7 @@ def game_logic_thread(game: Game):
     print(f"Iniciando lógica do jogo {game.game_id}")
 
     while True:
-        # 1. Leitura rápida do estado com lock mínimo
+        # Leitura rápida do estado com lock mínimo
         with game.lock:
             is_active = game.state["active"]
             countdown = game.state["countdown"]
@@ -161,7 +161,7 @@ def game_logic_thread(game: Game):
         # Só processa física se jogo está rodando
         if countdown <= 0 and winner_id is None:
             
-            # 2. Captura snapshot do estado atual com lock mínimo
+            # Captura snapshot do estado atual com lock mínimo
             with game.lock:
                 current_ball = game.state["ball"].copy()
                 current_speed = game.state["ball_speed"].copy()
