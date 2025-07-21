@@ -95,7 +95,9 @@ class Game:
             self.state["active"] = False
 
 def countdown_thread(game: Game):
-    """Faz a contagem regressiva antes do jogo começar"""
+    """
+    Faz a contagem regressiva antes do jogo começar
+    """
     print(f"Iniciando countdown para jogo {game.game_id}")
     
     while True:
@@ -116,35 +118,10 @@ def countdown_thread(game: Game):
     
     print(f"Countdown do jogo {game.game_id} finalizado")
 
-def setup_game_state() -> tuple[dict, str]:
-    """
-    Configura o estado inicial do jogo.
-    """
-    game_state = {
-        "paddles": [
-            pygame.Rect(WIDTH/2 - PADDLE_WIDTH/2, HEIGHT - 20 - PADDLE_HEIGHT, PADDLE_WIDTH, PADDLE_HEIGHT),
-            pygame.Rect(WIDTH/2 - PADDLE_WIDTH/2, 20, PADDLE_WIDTH, PADDLE_HEIGHT)
-        ],
-        "ball": pygame.Rect(WIDTH/2 - BALL_RADIUS, HEIGHT/2 - BALL_RADIUS, BALL_RADIUS * 2, BALL_RADIUS * 2),
-        "winner_id": None,
-        "game_started": False,
-        "countdown": 3,
-        "ball_speed": [BALL_SPEED_X_INITIAL, BALL_SPEED_Y_INITIAL],
-        "player_names": ["", ""],
-        "connected_players": 0,
-        "active": True,
-        "play_again_votes": 0,
-        "player_leaved": False
-    }
-    
-    game_id = str(randint(1000, 9999))
-    return game_state, game_id
-
 def game_logic_thread(game: Game):
     """
     Controla o movimento da bola e verifica quem ganhou.
     """
-
     print(f"Iniciando lógica do jogo {game.game_id}")
 
     while True:
@@ -219,8 +196,6 @@ def game_logic_thread(game: Game):
         
         time.sleep(1/60)  # 60 quadros por segundo
     print(f"Encerrando lógica do jogo {game.game_id}")
-
-
 
 def client_thread(conn: socket.socket, game: Game, player_id: int):
     """
