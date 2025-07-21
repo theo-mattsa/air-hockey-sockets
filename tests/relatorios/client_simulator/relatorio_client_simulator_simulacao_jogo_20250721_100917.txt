@@ -1,0 +1,38 @@
+================================================================================
+           RELATÓRIO DE SIMULAÇÃO DE CLIENTES - PONG SOCKETS
+================================================================================
+
+Data/Hora: 21/07/2025 10:09:17
+Tipo de Teste: SIMULACAO_JOGO
+Servidor: 172.28.154.143:5555
+
+RESUMO DOS RESULTADOS:
+----------------------------------------
+Clientes bem-sucedidos: 10
+Clientes com falha: 0
+Total de mensagens: 0
+Duração do teste: 61.12s
+Taxa de sucesso: 100.0%
+
+DETALHES DA EXECUÇÃO:
+----------------------------------------
+[10:08:15] 🎯 Iniciando simulação com 10 clientes por 60s...
+[10:08:26] ✅ Cliente game_0 concluído com sucesso
+[10:09:16] ✅ Cliente game_1 concluído com sucesso
+[10:09:16] ✅ Cliente game_2 concluído com sucesso
+[10:09:16] ✅ Cliente game_3 concluído com sucesso
+[10:09:16] ✅ Cliente game_4 concluído com sucesso
+[10:09:16] ✅ Cliente game_5 concluído com sucesso
+[10:09:16] ✅ Cliente game_6 concluído com sucesso
+[10:09:16] ✅ Cliente game_7 concluído com sucesso
+[10:09:16] ✅ Cliente game_8 concluído com sucesso
+[10:09:17] ✅ Cliente game_9 concluído com sucesso
+[10:09:17] 📊 Simulação concluída:
+[10:09:17]   Clientes bem-sucedidos: 10
+[10:09:17]   Clientes com falha: 0
+[10:09:17]   Taxa de sucesso: 100.0%
+[10:09:17]   Duração real: 61.1s
+
+================================================================================
+Relatório gerado automaticamente pelo Client Simulator
+================================================================================

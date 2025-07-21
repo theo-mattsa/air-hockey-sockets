@@ -1,0 +1,74 @@
+================================================================================
+              RELATÓRIO DE ESTABILIDADE - PONG SOCKETS
+================================================================================
+
+Data/Hora: 21/07/2025 10:03:04
+Tipo de Teste: SUITE_COMPLETA
+Servidor: 172.28.154.143:5555
+
+MÉTRICAS DE ESTABILIDADE:
+----------------------------------------
+Duração do teste: 180.00s
+Conexões totais: 26
+Conexões bem-sucedidas: 24
+Conexões falhadas: 2
+Desconexões: 2
+Crashes detectados: 0
+Taxa de sucesso: 92.3%
+
+ANÁLISE DE ESTABILIDADE:
+----------------------------------------
+🟡 ESTABILIDADE BOA (85-95% sucesso)
+✅ ROBUSTEZ EXCELENTE (sem crashes detectados)
+
+TIPOS DE ERRO MAIS COMUNS:
+  • Falha no protocolo inicial: 2 ocorrências
+
+DETALHES DA EXECUÇÃO:
+----------------------------------------
+[09:57:42] 🛡️  Iniciando suite de testes de estabilidade...
+[09:57:42] ============================================================
+[09:57:52] 
+[09:57:54] 
+[09:59:55] 
+[09:59:55] 🔒 Iniciando teste de estabilidade das conexões por 180s...
+[09:59:55] ✅ Cliente 2 conectado com sucesso
+[09:59:55] ✅ Cliente 5 conectado com sucesso
+[09:59:55] ✅ Cliente 7 conectado com sucesso
+[09:59:55] ✅ Cliente 0 conectado com sucesso
+[09:59:55] ✅ Cliente 1 conectado com sucesso
+[09:59:55] ✅ Cliente 3 conectado com sucesso
+[09:59:55] ✅ Cliente 6 conectado com sucesso
+[09:59:56] ✅ Cliente 4 conectado com sucesso
+[10:00:05] ❌ Cliente 8 falhou: Falha no protocolo inicial
+[10:00:05] ❌ Cliente 9 falhou: Falha no protocolo inicial
+[10:00:10] ✅ Cliente 9 conectado com sucesso
+[10:00:10] ✅ Cliente 8 conectado com sucesso
+[10:00:45] ✅ Cliente 0 conectado com sucesso
+[10:01:03] ✅ Cliente 9 conectado com sucesso
+[10:01:19] ✅ Cliente 6 conectado com sucesso
+[10:01:40] ✅ Cliente 9 conectado com sucesso
+[10:01:44] ✅ Cliente 7 conectado com sucesso
+[10:01:47] ✅ Cliente 3 conectado com sucesso
+[10:01:48] ✅ Cliente 1 conectado com sucesso
+[10:01:49] ✅ Cliente 5 conectado com sucesso
+[10:01:49] ✅ Cliente 4 conectado com sucesso
+[10:01:50] ✅ Cliente 2 conectado com sucesso
+[10:01:54] ✅ Cliente 8 conectado com sucesso
+[10:02:04] ✅ Cliente 0 conectado com sucesso
+[10:02:36] ✅ Cliente 9 conectado com sucesso
+[10:02:38] ✅ Cliente 5 conectado com sucesso
+[10:03:04] 📊 Resultados do Teste de Estabilidade:
+[10:03:04]   Duração: 180s
+[10:03:04]   Conexões totais: 26
+[10:03:04]   Conexões bem-sucedidas: 24
+[10:03:04]   Conexões falhadas: 2
+[10:03:04]   Taxa de sucesso: 92.3%
+[10:03:04]   Desconexões: 2
+[10:03:04] 📄 Relatório salvo em: relatorio_stability_conexoes_20250721_100304.txt
+[10:03:04] 
+[10:03:04] ✅ Suite de estabilidade concluída!
+
+================================================================================
+Relatório gerado automaticamente pelo Stability Test
+================================================================================

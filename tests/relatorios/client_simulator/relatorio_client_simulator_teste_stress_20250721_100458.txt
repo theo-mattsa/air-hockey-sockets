@@ -1,0 +1,48 @@
+================================================================================
+           RELATÓRIO DE SIMULAÇÃO DE CLIENTES - PONG SOCKETS
+================================================================================
+
+Data/Hora: 21/07/2025 10:04:58
+Tipo de Teste: TESTE_STRESS
+Servidor: 172.28.154.143:5555
+
+RESUMO DOS RESULTADOS:
+----------------------------------------
+Clientes bem-sucedidos: 0
+Clientes com falha: 0
+Total de mensagens: 5980
+Duração do teste: 31.04s
+Throughput: 192.7 mensagens/segundo
+
+DETALHES DA EXECUÇÃO:
+----------------------------------------
+[10:04:27] 🔥 Iniciando teste de stress: 20 clientes, 10 msg/s, 30s...
+[10:04:57] 📤 Cliente stress_3: 299 mensagens enviadas
+[10:04:57] 📤 Cliente stress_2: 299 mensagens enviadas
+[10:04:57] 📤 Cliente stress_0: 299 mensagens enviadas
+[10:04:57] 📤 Cliente stress_1: 299 mensagens enviadas
+[10:04:57] 📤 Cliente stress_4: 299 mensagens enviadas
+[10:04:57] 📤 Cliente stress_5: 299 mensagens enviadas
+[10:04:57] 📤 Cliente stress_6: 299 mensagens enviadas
+[10:04:57] 📤 Cliente stress_7: 299 mensagens enviadas
+[10:04:57] 📤 Cliente stress_8: 299 mensagens enviadas
+[10:04:57] 📤 Cliente stress_9: 299 mensagens enviadas
+[10:04:58] 📤 Cliente stress_10: 299 mensagens enviadas
+[10:04:58] 📤 Cliente stress_11: 299 mensagens enviadas
+[10:04:58] 📤 Cliente stress_12: 299 mensagens enviadas
+[10:04:58] 📤 Cliente stress_13: 299 mensagens enviadas
+[10:04:58] 📤 Cliente stress_14: 299 mensagens enviadas
+[10:04:58] 📤 Cliente stress_15: 299 mensagens enviadas
+[10:04:58] 📤 Cliente stress_16: 299 mensagens enviadas
+[10:04:58] 📤 Cliente stress_17: 299 mensagens enviadas
+[10:04:58] 📤 Cliente stress_18: 299 mensagens enviadas
+[10:04:58] 📤 Cliente stress_19: 299 mensagens enviadas
+[10:04:58] 📊 Resultados do Teste de Stress:
+[10:04:58]   Mensagens enviadas: 5980
+[10:04:58]   Mensagens esperadas: 6000
+[10:04:58]   Eficiência: 99.7%
+[10:04:58]   Throughput: 192.7 msg/s
+
+================================================================================
+Relatório gerado automaticamente pelo Client Simulator
+================================================================================
