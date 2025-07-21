@@ -216,7 +216,7 @@ def client_thread(conn: socket.socket, game: Game, player_id: int):
         
         if player_name == "\0testando\0":
             print("Requisição de teste.")
-            game.update_connected_players(1)
+            game.deactivate()
             while True:
                 data = conn.recv(2048)
                 if not data: # Cliente desconectou
@@ -269,18 +269,17 @@ def client_thread(conn: socket.socket, game: Game, player_id: int):
                     print(f"Erro na comunicação com {player_name}: {e}")
                     break
             
+            print(f"Desconectando {player_name} do jogo {game.game_id}")
+            game.update_connected_players(-1)
+            game.set_player_left()
+            
+            # Verifica se deve desativar o jogo
+            with game.lock:
+                if game.state["connected_players"] == 0:
+                    game.deactivate()
+                    print(f"Jogo {game.game_id} encerrado - sem jogadores")
     except Exception as e:
         print(f"Erro na thread do cliente {player_name} do jogo {game.game_id}: {e}")
-    
-    print(f"Desconectando {player_name} do jogo {game.game_id}")
-    game.update_connected_players(-1)
-    game.set_player_left()
-    
-    # Verifica se deve desativar o jogo
-    with game.lock:
-        if game.state["connected_players"] == 0:
-            game.deactivate()
-            print(f"Jogo {game.game_id} encerrado - sem jogadores")
     
     try:
         conn.close()
