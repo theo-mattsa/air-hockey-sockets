@@ -2,7 +2,7 @@
 
 ## Descrição
 
-Um jogo multiplayer de Pong implementado com sockets TCP em Python, utilizando a biblioteca Pygame para a interface gráfica. O projeto demonstra a aplicação prática de conceitos de Redes de Computadores, como a arquitetura cliente-servidor e comunicação via sockets para criar um jogo funcional em tempo real.
+Um jogo multiplayer de Pong implementado com sockets TCP em Python, utilizando a biblioteca Pygame para a interface gráfica. O projeto demonstra a aplicação prática de conceitos de Redes de Computadores e Sistemas Operacionais, como a arquitetura cliente-servidor, comunicação via sockets, manipulação de threads e gerenciamente de áreas críticas com locks para criar um jogo funcional em tempo real.
 
 ## Tecnologias Utilizadas
 
@@ -23,7 +23,16 @@ Um jogo multiplayer de Pong implementado com sockets TCP em Python, utilizando a
 
 ### Instruções de Execução
 
-**1. Configuração do Ambiente**
+**1. Clone do repositório**
+
+Execute os seguintes comandos para clonar e acessar o repositório:
+
+```bash
+git clone https://github.com/theo-mattsa/pong-sockets.git
+cd pong-sockets
+```
+
+**2. Configuração do Ambiente**
 
 É recomendado usar o script de configuração automática:
 
@@ -33,20 +42,18 @@ chmod +x setup_env.sh
 ./setup_env.sh
 ```
 
-Isso irá criar um ambiente virtual, ativá-lo e instalar as dependências do requirements.txt.s
+Isso irá criar um ambiente virtual, ativá-lo e instalar as dependências do `requirements.txt`.
 
-**2. Configuração da Conexão**
+**3. Configuração da Conexão**
 
-Crie um arquivo chamado .env na raiz do projeto com o seguinte conteúdo para definir o endereço do servidor:
+Crie um arquivo chamado .env na raiz do projeto informando o IP e a porta do servidor:
 
 ```bash
-SERVER_IP=localhost
-SERVER_PORT=5555
+SERVER_IP=<endereco_ip>
+SERVER_PORT=<numero_da_porta>
 ```
 
-- Para jogar em rede local, altere localhost para o endereço IP da máquina que executará o servidor.
-
-**3. Execute o servidor**
+**4. Execute o servidor**
 
 Abra um terminal e inicie o servidor com o script:
 
@@ -76,6 +83,13 @@ chmod +x run_client.sh
 - Controle a raquete com as teclas de seta (esquerda e direita).
 - Ao final da partida, uma mensagem de vitória ou derrota será exibida, com a opção de clicar em "Revanche".
 
+## Fluxo de funcionamento
+
+Os fluxogramas abaixo ilustram o fluxo de funcionamento do servidor e do cliente, respectivamente.
+
+![Fluxograma do servidor](imgs/server_flux.jpg)
+![Fluxograma do cliente](imgs/client_flux.jpg)
+
 ## Funcionalidades implementadas
 
 - Multiplayer online: Dois jogadores podem se conectar a um servidor e jogar simultaneamente.
@@ -100,6 +114,7 @@ chmod +x run_client.sh
 - Áudio e efeitos sonoros: Som de colisão, música de fundo e vítoria
 - Sistema de pontuação durante a realização do jogo
 - Ranking entre jogadores
+- Permitir que um jogador busque outro oponente sem a necessidade de encerrar o processo.
 
 ### Melhorias de Rede
 
