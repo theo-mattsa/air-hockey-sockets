@@ -7,7 +7,7 @@ import math
 from dotenv import load_dotenv
 import os
 from random import randint
-
+import time
 
 WIDTH, HEIGHT = 960, 600
 PADDLE_WIDTH, PADDLE_HEIGHT = 120, 10
@@ -204,7 +204,7 @@ def client_thread(conn: socket.socket, game: Game, player_id: int):
     try:
         print(f"Cliente conectado: Jogo {game.game_id}, Jogador {player_id+1}")
         
-        # Manda qual jogador ele é (1 ou 2)
+        # Manda qual jogador ele é (0 ou 1)
         conn.send(pickle.dumps(player_id))
         
         # Recebe o nome que o jogador digitou
@@ -214,69 +214,77 @@ def client_thread(conn: socket.socket, game: Game, player_id: int):
             print(f"Erro ao receber nome: {e}")
             player_name = "Fulano"
         
-        # Salva o nome do jogador no jogo
-        game.set_player_name(player_id, player_name)
-        print(f"Jogador {player_id+1} do jogo {game.game_id} definido como: {player_name}")
-
-        # Aumenta o contador de jogadores conectados
-        game.update_connected_players(1)
-        
-        # Se ambos jogadores estão conectados, inicia countdown
-        with game.lock:
-            if game.state["connected_players"] == 2 and not game.state["game_started"]:
-                countdown_logic = threading.Thread(target=countdown_thread, args=(game,))
-                countdown_logic.start()
-                game.state["game_started"] = True
-        
-        # Loop principal do cliente
-        while game.state["active"]:
-            try:
-                # Manda o estado atual do jogo para o cliente
-                conn.send(pickle.dumps(game.get_state_copy()))
-                
+        if player_name == "testando":
+            print("Requisição de teste.")
+            while True:
                 data = conn.recv(2048)
                 if not data: # Cliente desconectou
                     break
-                
-                received_data = pickle.loads(data)
-                
-                if isinstance(received_data, str) and received_data == "play_again":
-                    votes = game.increment_play_again_votes()
-                    print(f"Voto para reiniciar jogo {game.game_id}: {votes}/2")
+                time.sleep(0.01) # Simulação da execução da lógica
+                conn.send(pickle.dumps("testando"))
+        else:
+            # Salva o nome do jogador no jogo
+            game.set_player_name(player_id, player_name)
+            print(f"Jogador {player_id+1} do jogo {game.game_id} definido como: {player_name}")
+
+            # Aumenta o contador de jogadores conectados
+            game.update_connected_players(1)
+            
+            # Se ambos jogadores estão conectados, inicia countdown
+            with game.lock:
+                if game.state["connected_players"] == 2 and not game.state["game_started"]:
+                    countdown_logic = threading.Thread(target=countdown_thread, args=(game,))
+                    countdown_logic.start()
+                    game.state["game_started"] = True
+            
+            # Loop principal do cliente
+            while game.state["active"]:
+                try:
+                    # Manda o estado atual do jogo para o cliente
+                    conn.send(pickle.dumps(game.get_state_copy()))
                     
-                    # Se ambos votaram, reinicia o jogo
-                    if votes >= 2:
-                        print(f"Reiniciando jogo {game.game_id}")
-                        game.reset_game()
-                        countdown_logic = threading.Thread(target=countdown_thread, args=(game,))
-                        countdown_logic.start()
+                    data = conn.recv(2048)
+                    if not data: # Cliente desconectou
+                        break
+                    
+                    received_data = pickle.loads(data)
+                    
+                    if isinstance(received_data, str) and received_data == "play_again":
+                        votes = game.increment_play_again_votes()
+                        print(f"Voto para reiniciar jogo {game.game_id}: {votes}/2")
                         
-                elif isinstance(received_data, pygame.Rect):
-                    # Atualiza onde está a raquete do jogador
-                    game.update_paddle(player_id, received_data)
-                
-            except Exception as e:
-                print(f"Erro na comunicação com {player_name}: {e}")
-                break
-        
+                        # Se ambos votaram, reinicia o jogo
+                        if votes >= 2:
+                            print(f"Reiniciando jogo {game.game_id}")
+                            game.reset_game()
+                            countdown_logic = threading.Thread(target=countdown_thread, args=(game,))
+                            countdown_logic.start()
+                            
+                    elif isinstance(received_data, pygame.Rect):
+                        # Atualiza onde está a raquete do jogador
+                        game.update_paddle(player_id, received_data)
+                    
+                except Exception as e:
+                    print(f"Erro na comunicação com {player_name}: {e}")
+                    break
+            
     except Exception as e:
         print(f"Erro na thread do cliente {player_name} do jogo {game.game_id}: {e}")
     
-    finally:
-        print(f"Desconectando {player_name} do jogo {game.game_id}")
-        game.update_connected_players(-1)
-        game.set_player_left()
-        
-        # Verifica se deve desativar o jogo
-        with game.lock:
-            if game.state["connected_players"] == 0:
-                game.deactivate()
-                print(f"Jogo {game.game_id} encerrado - sem jogadores")
-        
-        try:
-            conn.close()
-        except:
-            pass
+    print(f"Desconectando {player_name} do jogo {game.game_id}")
+    game.update_connected_players(-1)
+    game.set_player_left()
+    
+    # Verifica se deve desativar o jogo
+    with game.lock:
+        if game.state["connected_players"] == 0:
+            game.deactivate()
+            print(f"Jogo {game.game_id} encerrado - sem jogadores")
+    
+    try:
+        conn.close()
+    except:
+        pass
 
 def main():
     load_dotenv()
