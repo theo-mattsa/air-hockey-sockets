@@ -106,3 +106,4 @@ chmod +x run_client.sh
 - Mecanismo de reconexão: Permite que jogadores possam se reconectar em caso de desconexão temporária.
 - Possível utilização do protocolo UDP para movimentação dos paddles (RAQUETES)
 - Possível otimização no tamanho dos dados enviados na rede
+- Avaliar utilizar FPS um pouco menor (< 60)

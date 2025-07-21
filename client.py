@@ -133,14 +133,15 @@ def get_winner_text(winner_id:int, player_id:int):
 def main():
     # Configuração de conexão
     load_dotenv()
-    server_ip = os.getenv("SERVER_IP", "localhost")
-    server_port = int(os.getenv("SERVER_PORT", "5555"))
-    
+    ip_address = os.getenv("SERVER_IP")
+    port_number = int(os.getenv("SERVER_PORT"))
+
+    # TCP socket para o servidor
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     
     try:
-        client_socket.connect((server_ip, server_port))
-        print(f"Conectado ao servidor {server_ip}:{server_port}")
+        client_socket.connect((ip_address, port_number))
+        print(f"Conectado ao servidor {ip_address}:{port_number}")
     except Exception as e:
         print(f"Erro de conexão: {e}")
         pygame.quit()
@@ -159,7 +160,7 @@ def main():
     player_name = ""
     input_box = pygame.Rect(WIDTH/2 - 200, HEIGHT/2 - 25, 400, 50)
     ok_button = pygame.Rect(WIDTH/2 - 75, HEIGHT/2 + 50, 150, 60)
-    active = False
+    active = True
     name_entered = False
     
     while not name_entered:
@@ -197,7 +198,6 @@ def main():
         pygame.quit()
         sys.exit()
     
-    # Configuração do jogo
     pygame.display.set_caption(f"Pong - {player_name}")
     
     # Inicialização das raquetes
@@ -266,7 +266,7 @@ def main():
             if winner_id == None:
                 voted_for_reset = False
             
-            # Texto de vitória personalizado
+            # Texto de vitória ou derrota personalizado
             winner_text = get_winner_text(winner_id, player_id)
             
             # Renderização

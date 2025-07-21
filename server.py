@@ -305,13 +305,17 @@ def client_thread(conn: socket.socket, game: Game, player_id: int):
 
 def main():
     load_dotenv()
+    
+    # Configurações do servidor
     ip_address = os.getenv("SERVER_IP")
     port_number = int(os.getenv("SERVER_PORT"))
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM) # IPv4 com TCP na camada de transporte
+    
+    # TCP socket para o servidor
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
     
     try:
         s.bind((ip_address, port_number))
-        s.listen(5) # fila de no máximo 5 requisições pendentes
+        s.listen(5) 
         print(f"Servidor Pong iniciado em {ip_address}:{port_number}")
         print("Aguardando conexões...")
     except socket.error as e:
