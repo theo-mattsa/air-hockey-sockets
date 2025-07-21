@@ -111,7 +111,7 @@ def redraw_window(win, p1, p2, ball, winner, players_online, countdown_val, butt
         button_color = (150, 150, 0) if voted else (0, 150, 0)
         pygame.draw.rect(win, button_color, button, border_radius=10)
         
-        button_text = "Aguardando..." if voted else "Novo Jogo"
+        button_text = "Aguardando..." if voted else "Revanche"
         button_surface = small_font.render(button_text, True, WHITE)
         button_rect = button_surface.get_rect(center=button.center)
         win.blit(button_surface, button_rect)

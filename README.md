@@ -74,7 +74,7 @@ chmod +x run_client.sh
 - Inicie o primeiro cliente. Ele pedirá um nome e depois exibirá uma tela de "Aguardando oponente...".
 - Assim que o segundo cliente se conectar e enviar seu nome, o servidor iniciará a partida para ambos. Uma contagem regressiva aparecerá, e o jogo começará.
 - Controle a raquete com as teclas de seta (esquerda e direita).
-- Ao final da partida, uma mensagem de vitória ou derrota será exibida, com a opção de iniciar um "Novo Jogo".
+- Ao final da partida, uma mensagem de vitória ou derrota será exibida, com a opção de clicar em "Revanche".
 
 ## Funcionalidades implementadas
 
