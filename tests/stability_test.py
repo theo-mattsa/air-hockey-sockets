@@ -19,7 +19,7 @@ from datetime import datetime
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # Importar configurações
-from config import SERVER_HOST, SERVER_PORT
+from config import SERVER_HOST, SERVER_PORT, REPORTS_DIR
 
 # Inicializar pygame para criar Rect objects
 pygame.init()
@@ -50,7 +50,10 @@ class StabilityTest:
         """Salva o relatório em arquivo TXT"""
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         filename = f"relatorio_stability_{test_type}_{timestamp}.txt"
-        filepath = os.path.join(os.path.dirname(__file__), filename)
+        
+        # Criar diretório de relatórios se não existir
+        os.makedirs(REPORTS_DIR, exist_ok=True)
+        filepath = os.path.join(REPORTS_DIR, filename)
         
         with open(filepath, 'w', encoding='utf-8') as f:
             f.write("=" * 80 + "\n")

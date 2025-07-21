@@ -21,7 +21,7 @@ from datetime import datetime
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # Importar configurações
-from config import SERVER_HOST, SERVER_PORT
+from config import SERVER_HOST, SERVER_PORT, REPORTS_DIR
 
 class PerformanceTest:
     def __init__(self, host=SERVER_HOST, port=SERVER_PORT):
@@ -48,7 +48,10 @@ class PerformanceTest:
         """Salva o relatório em arquivo TXT"""
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         filename = f"relatorio_performance_{test_type}_{timestamp}.txt"
-        filepath = os.path.join(os.path.dirname(__file__), filename)
+        
+        # Criar diretório se não existir
+        os.makedirs(REPORTS_DIR, exist_ok=True)
+        filepath = os.path.join(REPORTS_DIR, filename)
         
         with open(filepath, 'w', encoding='utf-8') as f:
             f.write("=" * 80 + "\n")
@@ -383,9 +386,12 @@ class PerformanceTest:
             axes[1, 1].set_ylabel('Frequência')
         
         plt.tight_layout()
-        plt.savefig('/home/theo/Documents/ufes/redes/pong-sockets/tests/performance_report.png', 
-                   dpi=300, bbox_inches='tight')
-        print("  Relatório salvo como 'performance_report.png'")
+        
+        # Salvar no diretório de relatórios
+        report_path = os.path.join(REPORTS_DIR, 'performance_report.png')
+        os.makedirs(REPORTS_DIR, exist_ok=True)
+        plt.savefig(report_path, dpi=300, bbox_inches='tight')
+        print(f"  Relatório salvo como '{report_path}'")
         plt.show()
     
     def run_full_test_suite(self):

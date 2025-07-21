@@ -12,7 +12,7 @@ from datetime import datetime
 sys.path.append(os.path.dirname(__file__))
 
 # Importar configurações
-from config import SERVER_HOST, SERVER_PORT
+from config import SERVER_HOST, SERVER_PORT, REPORTS_DIR
 
 def print_header(title):
     """Imprime cabeçalho formatado"""
@@ -94,25 +94,27 @@ def main():
         print("📄 RELATÓRIOS GERADOS:")
         print("=" * 70)
         
-        # Listar arquivos de relatório recentes
-        test_dir = os.path.dirname(__file__)
-        files = os.listdir(test_dir)
-        report_files = [f for f in files if f.startswith('relatorio_') and f.endswith('.txt')]
-        
-        # Ordenar por data de modificação (mais recentes primeiro)
-        report_files.sort(key=lambda x: os.path.getmtime(os.path.join(test_dir, x)), reverse=True)
-        
-        if report_files:
-            print("Relatórios mais recentes:")
-            for i, filename in enumerate(report_files[:5], 1):
-                filepath = os.path.join(test_dir, filename)
-                mod_time = datetime.fromtimestamp(os.path.getmtime(filepath))
-                print(f"  {i}. {filename}")
-                print(f"     Criado: {mod_time.strftime('%d/%m/%Y %H:%M:%S')}")
-        else:
-            print("Nenhum relatório encontrado.")
+        # Listar arquivos de relatório do diretório de relatórios
+        if os.path.exists(REPORTS_DIR):
+            files = os.listdir(REPORTS_DIR)
+            report_files = [f for f in files if f.startswith('relatorio_') and f.endswith('.txt')]
             
-        print(f"\nRelatórios salvos em: {test_dir}")
+            # Ordenar por data de modificação (mais recentes primeiro)
+            report_files.sort(key=lambda x: os.path.getmtime(os.path.join(REPORTS_DIR, x)), reverse=True)
+            
+            if report_files:
+                print("Relatórios mais recentes:")
+                for i, filename in enumerate(report_files[:5], 1):
+                    filepath = os.path.join(REPORTS_DIR, filename)
+                    mod_time = datetime.fromtimestamp(os.path.getmtime(filepath))
+                    print(f"  {i}. {filename}")
+                    print(f"     Criado: {mod_time.strftime('%d/%m/%Y %H:%M:%S')}")
+            else:
+                print("Nenhum relatório encontrado.")
+        else:
+            print("Diretório de relatórios não encontrado.")
+            
+        print(f"\nRelatórios salvos em: {REPORTS_DIR}")
         
     except KeyboardInterrupt:
         print("\n⚠️  Execução interrompida pelo usuário")
