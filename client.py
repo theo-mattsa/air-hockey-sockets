@@ -97,8 +97,9 @@ def redraw_window(win, p1, p2, ball, winner, players_online, countdown_val, butt
             my_paddle_inverted = pygame.Rect(p2.x, HEIGHT - 20 - PADDLE_HEIGHT, p2.width, p2.height)
             opponent_paddle_inverted = pygame.Rect(p1.x, 20, p1.width, p1.height)
             ball_inverted = pygame.Rect(ball.x, HEIGHT - ball.y - ball.height, ball.width, ball.height)   
-            pygame.draw.rect(win, BLUE, my_paddle_inverted)
-            pygame.draw.rect(win, RED, opponent_paddle_inverted)
+            
+            pygame.draw.rect(win, RED, my_paddle_inverted)
+            pygame.draw.rect(win, BLUE, opponent_paddle_inverted)
             pygame.draw.ellipse(win, WHITE, ball_inverted)
     
     # Tela de vitória
