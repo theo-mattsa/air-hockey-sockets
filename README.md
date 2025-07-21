@@ -34,7 +34,7 @@ cd pong-sockets
 
 **2. Configuração do Ambiente**
 
-É recomendado usar o script de configuração automática:
+Para isolar o programa e suas dependências, evitando problemas de compatibilidade e versionamento, é recomendado usar o script de configuração automática:
 
 ```bash
 # Conceda permissão de execução e rode o script
