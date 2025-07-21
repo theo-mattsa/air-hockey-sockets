@@ -20,7 +20,7 @@ import numpy as np
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 class PerformanceTest:
-    def __init__(self, host='localhost', port=5000):
+    def __init__(self, host='localhost', port=5555):
         self.host = host
         self.port = port
         self.results = {
@@ -298,7 +298,7 @@ class PerformanceTest:
 
 if __name__ == "__main__":
     # Configurar teste
-    tester = PerformanceTest(host='localhost', port=5000)
+    tester = PerformanceTest(host='localhost', port=5555)
     
     print("Pong Socket Game - Testes de Performance e Estabilidade")
     print("=" * 60)

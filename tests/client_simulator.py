@@ -16,7 +16,7 @@ import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 class GameClientSimulator:
-    def __init__(self, host='localhost', port=5000, client_id=None):
+    def __init__(self, host='localhost', port=5555, client_id=None):
         self.host = host
         self.port = port
         self.client_id = client_id or f"bot_{random.randint(1000, 9999)}"
@@ -164,7 +164,7 @@ class GameClientSimulator:
 
 
 class LoadTestManager:
-    def __init__(self, host='localhost', port=5000):
+    def __init__(self, host='localhost', port=5555):
         self.host = host
         self.port = port
         self.results = {
@@ -284,7 +284,7 @@ def main():
     print("🎮 Pong Socket Game - Simulador de Clientes")
     print("=" * 60)
     
-    manager = LoadTestManager(host='localhost', port=5000)
+    manager = LoadTestManager(host='localhost', port=5555)
     
     print("IMPORTANTE: Certifique-se de que o servidor está rodando!")
     print()

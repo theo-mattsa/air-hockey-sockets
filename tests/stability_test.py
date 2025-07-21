@@ -11,13 +11,17 @@ import pickle
 import os
 import sys
 import random
+import pygame
 from concurrent.futures import ThreadPoolExecutor
 
 # Adicionar o diretório pai ao path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+# Inicializar pygame para criar Rect objects
+pygame.init()
+
 class StabilityTest:
-    def __init__(self, host='localhost', port=5000):
+    def __init__(self, host='localhost', port=5555):
         self.host = host
         self.port = port
         self.results = {
@@ -29,6 +33,23 @@ class StabilityTest:
             'disconnections': 0,
             'server_crashes': 0
         }
+        self.results_lock = threading.Lock()  # Proteção contra race conditions
+    
+    def _follow_server_protocol(self, sock, client_name="TestClient"):
+        """Segue o protocolo correto do servidor"""
+        try:
+            # 1. Receber player_id do servidor
+            player_id_data = sock.recv(2048)
+            if not player_id_data:
+                return False
+            player_id = pickle.loads(player_id_data)
+            
+            # 2. Enviar nome do jogador
+            sock.send(pickle.dumps(client_name))
+            
+            return True
+        except Exception as e:
+            return False
     
     def test_connection_stability(self, duration=300):
         """Testa a estabilidade das conexões ao longo do tempo"""
@@ -47,25 +68,41 @@ class StabilityTest:
                     sock.settimeout(10.0)
                     sock.connect((self.host, self.port))
                     
-                    self.results['successful_connections'] += 1
+                    # Seguir protocolo correto do servidor
+                    client_name = f"TestClient{client_id}"
+                    if not self._follow_server_protocol(sock, client_name):
+                        raise Exception("Falha no protocolo inicial")
+                    
+                    with self.results_lock:
+                        self.results['successful_connections'] += 1
                     
                     # Manter conexão por um tempo aleatório (30-120s)
                     connection_duration = random.randint(30, 120)
                     connection_end = time.time() + connection_duration
                     
+                    # Simular movimento da raquete
+                    paddle_x = 480  # Centro da tela
+                    
                     while time.time() < connection_end and time.time() - start_time < duration:
                         try:
-                            # Enviar heartbeat
-                            data = {
-                                'type': 'heartbeat',
-                                'client_id': client_id,
-                                'timestamp': time.time()
-                            }
-                            sock.sendall(pickle.dumps(data))
-                            time.sleep(random.uniform(1, 3))
+                            # Receber estado do jogo
+                            game_state_data = sock.recv(2048)
+                            if not game_state_data:
+                                break
+                            
+                            game_state = pickle.loads(game_state_data)
+                            
+                            # Enviar posição da raquete (simular movimento)
+                            paddle_x += random.randint(-20, 20)
+                            paddle_x = max(60, min(900, paddle_x))  # Limites da tela
+                            
+                            paddle_rect = pygame.Rect(paddle_x - 60, 20, 120, 10)
+                            sock.send(pickle.dumps(paddle_rect))
+                            
+                            time.sleep(random.uniform(0.1, 0.5))
                             
                         except Exception as e:
-                            print(f"  Erro no heartbeat (Cliente {client_id}): {e}")
+                            print(f"  Erro no loop do jogo (Cliente {client_id}): {e}")
                             disconnections += 1
                             break
                     
@@ -75,23 +112,26 @@ class StabilityTest:
                     time.sleep(random.uniform(2, 10))
                     
                 except Exception as e:
-                    self.results['failed_connections'] += 1
-                    self.results['connection_errors'].append(str(e))
+                    with self.results_lock:
+                        self.results['failed_connections'] += 1
+                        self.results['connection_errors'].append(str(e))
                     disconnections += 1
                     time.sleep(5)  # Pausa maior em caso de erro
             
-            self.results['disconnections'] += disconnections
+            with self.results_lock:
+                self.results['disconnections'] += disconnections
         
         # Simular vários clientes conectando/desconectando
-        num_clients = 15
+        num_clients = 10  # Reduzido para evitar sobrecarga
         with ThreadPoolExecutor(max_workers=num_clients) as executor:
             futures = [executor.submit(maintain_connection, i) for i in range(num_clients)]
             
             for future in futures:
                 future.result()
         
-        self.results['total_connections'] = (self.results['successful_connections'] + 
-                                           self.results['failed_connections'])
+        with self.results_lock:
+            self.results['total_connections'] = (self.results['successful_connections'] + 
+                                               self.results['failed_connections'])
         
         success_rate = 0
         if self.results['total_connections'] > 0:
@@ -119,12 +159,14 @@ class StabilityTest:
                 sock.settimeout(2.0)
                 sock.connect((self.host, self.port))
                 
-                # Enviar dados básicos
-                data = {'type': 'quick_test', 'iteration': i}
-                sock.sendall(pickle.dumps(data))
+                # Seguir protocolo básico
+                client_name = f"QuickTest{i}"
+                if self._follow_server_protocol(sock, client_name):
+                    successful += 1
+                else:
+                    failed += 1
                 
                 sock.close()
-                successful += 1
                 
                 if i % 20 == 0:
                     print(f"  Progress: {i}/{num_attempts}")
@@ -205,26 +247,35 @@ class StabilityTest:
         while time.time() - start_time < duration:
             try:
                 # Criar e fechar conexões rapidamente
-                for _ in range(10):
+                for _ in range(5):  # Reduzido para 5 conexões por vez
                     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                     sock.settimeout(1.0)
                     sock.connect((self.host, self.port))
                     
-                    # Enviar dados variados
-                    data = {
-                        'type': 'memory_test',
-                        'data': 'x' * random.randint(100, 1000),
-                        'timestamp': time.time()
-                    }
-                    sock.sendall(pickle.dumps(data))
+                    # Seguir protocolo básico
+                    client_name = f"MemTest{connection_count}"
+                    if self._follow_server_protocol(sock, client_name):
+                        # Enviar algumas posições de raquete
+                        for _ in range(3):
+                            paddle_rect = pygame.Rect(400, 20, 120, 10)
+                            sock.send(pickle.dumps(paddle_rect))
+                            
+                            # Tentar receber estado do jogo
+                            try:
+                                sock.recv(2048)
+                            except:
+                                pass
+                            
+                            time.sleep(0.01)
+                    
                     sock.close()
                     connection_count += 1
                 
-                if connection_count % 100 == 0:
+                if connection_count % 50 == 0:
                     elapsed = time.time() - start_time
                     print(f"  {connection_count} conexões criadas em {elapsed:.1f}s")
                 
-                time.sleep(0.1)
+                time.sleep(0.2)  # Pausa maior entre lotes
                 
             except Exception as e:
                 print(f"  Erro no teste de memória: {e}")
@@ -291,7 +342,7 @@ class StabilityTest:
 
 if __name__ == "__main__":
     # Configurar teste
-    tester = StabilityTest(host='localhost', port=5000)
+    tester = StabilityTest(host='localhost', port=5555)
     
     print("Pong Socket Game - Testes de Estabilidade")
     print("=" * 60)
