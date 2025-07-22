@@ -1,0 +1,37 @@
+RELATÓRIO DE TESTE DE CARGA GRADUAL
+Data/Hora: 21/07/2025 20:57:21
+Servidor: 172.28.154.143:5555
+
+RESUMO DOS RESULTADOS:
+Clientes bem-sucedidos: 210
+Clientes com falha: 0
+Duração do teste: 83.13s
+Taxa de sucesso global: 100.0%
+
+DETALHES DA EXECUÇÃO:
+[20:55:58] Iniciando teste de carga gradual: 0 até 60 clientes
+[20:55:58] Configuração: Passo = 10 clientes, Duração/step = 10s
+[20:55:58] Testando com 10 clientes...
+[20:56:08] Clientes bem-sucedidos: 10/10 (100.0%)
+[20:56:08] Duração real do passo: 10.5s
+[20:56:10] Testando com 20 clientes...
+[20:56:21] Clientes bem-sucedidos: 20/20 (100.0%)
+[20:56:21] Duração real do passo: 11.0s
+[20:56:23] Testando com 30 clientes...
+[20:56:35] Clientes bem-sucedidos: 30/30 (100.0%)
+[20:56:35] Duração real do passo: 11.6s
+[20:56:37] Testando com 40 clientes...
+[20:56:49] Clientes bem-sucedidos: 40/40 (100.0%)
+[20:56:49] Duração real do passo: 12.1s
+[20:56:51] Testando com 50 clientes...
+[20:57:03] Clientes bem-sucedidos: 50/50 (100.0%)
+[20:57:03] Duração real do passo: 12.6s
+[20:57:05] Testando com 60 clientes...
+[20:57:19] Clientes bem-sucedidos: 60/60 (100.0%)
+[20:57:19] Duração real do passo: 13.2s
+[20:57:21] 
+TESTE CONCLUÍDO
+[20:57:21] Clientes bem-sucedidos: 210
+[20:57:21] Clientes com falha: 0
+[20:57:21] Taxa de sucesso global: 100.0%
+[20:57:21] Duração total: 83.1s

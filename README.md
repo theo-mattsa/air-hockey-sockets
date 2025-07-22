@@ -106,6 +106,15 @@ Os fluxogramas abaixo ilustram o fluxo de funcionamento do servidor e do cliente
 - Interface intuitiva: Entrada de nome, feedback visual durante toda a experiência do jogo.
 - Múltiplas partidas simultâneas: O servidor suporta várias partidas independentes ao mesmo tempo.
 
+## Performance
+
+O jogo operou perfeitamente, sem atrasos perceptíveis, mesmo com quatro partidas simultâneas.
+
+Para simular a escalabilidade e a estabilidade do servidor sob uma carga maior de requisições, foi utilizado o script `server_test.py`.
+Com o objetivo de simular um número maior de conexões — até sessenta jogadores simultâneos — foi implementado um modo de teste no servidor, no qual ele apenas envia e recebe dados, sem processar a lógica do jogo (substituída por um sleep).
+
+Os resultados demonstraram uma excelente performance, conforme registrado no relatório `relatorio_carga_gradual_20250721_205721.txt`.
+
 ## Possíveis Melhorias Futuras
 
 ### Melhorias do Jogo
