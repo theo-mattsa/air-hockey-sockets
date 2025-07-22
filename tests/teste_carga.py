@@ -73,8 +73,11 @@ class GameClientSimulator:
         """Simula uma sessão real do jogo Pong"""
         print(f"🎮 Cliente {self.client_id} iniciando sessão de {duration}s")
         
+        # Medir tempo de conexão
+        connection_start = time.time()
         if not self.connect():
-            return False
+            return False, 0, 0, 0  # success, messages_sent, messages_received, connection_time
+        connection_time = time.time() - connection_start
         
         start_time = time.time()
         messages_sent = 0
@@ -131,7 +134,7 @@ class GameClientSimulator:
             
         except Exception as e:
             print(f"❌ Erro no protocolo inicial (Cliente {self.client_id}): {e}")
-            return False
+            return False, 0, 0, connection_time
         
         finally:
             if self.socket:
@@ -139,7 +142,7 @@ class GameClientSimulator:
             self.connected = False
         
         print(f"📊 Cliente {self.client_id} (Jogador {player_id + 1 if player_id is not None else '?'}) - Mensagens enviadas: {messages_sent}, recebidas: {messages_received}")
-        return True
+        return True, messages_sent, messages_received, connection_time
 
 
 class LoadTestManager:
@@ -150,8 +153,13 @@ class LoadTestManager:
             'successful_clients': 0,
             'failed_clients': 0,
             'total_messages': 0,
-            'test_duration': 0
+            'test_duration': 0,
+            'total_steps': 0,
+            'step_times': [],  # Duração de cada etapa
+            'connection_times': [],  # Tempos de conexão
+            'step_details': []  # Detalhes de cada etapa
         }
+        self.test_start_time = None
         self.test_report = []  # Lista para armazenar relatório detalhado
     
     def add_to_report(self, message):
@@ -185,14 +193,24 @@ class LoadTestManager:
             f.write(f"Total de mensagens: {self.results['total_messages']}\n")
             f.write(f"Duração do teste: {self.results['test_duration']:.2f}s\n")
             
-            if self.results['successful_clients'] + self.results['failed_clients'] > 0:
-                total_clients = self.results['successful_clients'] + self.results['failed_clients']
+            # Métricas de performance
+            total_clients = self.results['successful_clients'] + self.results['failed_clients']
+            total_games = self.results['successful_clients'] // 2
+            
+            if total_clients > 0:
                 success_rate = (self.results['successful_clients'] / total_clients) * 100
                 f.write(f"Taxa de sucesso: {success_rate:.1f}%\n")
             
-            if self.results['test_duration'] > 0 and self.results['total_messages'] > 0:
-                throughput = self.results['total_messages'] / self.results['test_duration']
-                f.write(f"Throughput: {throughput:.1f} mensagens/segundo\n")
+            f.write(f"Total de jogos formados: {total_games}\n")
+            
+            if self.results['test_duration'] > 0:
+                if self.results['total_messages'] > 0:
+                    throughput = self.results['total_messages'] / self.results['test_duration']
+                    f.write(f"Throughput: {throughput:.1f} mensagens/segundo\n")
+                
+                if total_games > 0:
+                    games_throughput = total_games / self.results['test_duration']
+                    f.write(f"Taxa de jogos: {games_throughput:.2f} jogos/segundo\n")
             
             f.write("\nDETALHES DA EXECUÇÃO:\n")
             f.write("-" * 40 + "\n")
@@ -208,6 +226,9 @@ class LoadTestManager:
     
     def run_gradual_load_test(self, max_clients=50, step=5, step_duration=30):
         """Teste de carga gradual com protocolo real do Pong"""
+        # Inicializar tempo do teste
+        self.test_start_time = time.time()
+        
         # Garantir números pares (cada jogo precisa de 2 jogadores)
         if max_clients % 2 != 0:
             max_clients += 1
@@ -226,15 +247,17 @@ class LoadTestManager:
             # Reset results for this step
             step_results = {
                 'successful_clients': 0,
-                'failed_clients': 0
+                'failed_clients': 0,
+                'total_messages': 0
             }
             
             def client_worker(client_id):
                 simulator = GameClientSimulator(self.host, self.port, client_id)
-                success = simulator.simulate_game_session(step_duration)
+                success, msg_sent, msg_received, _ = simulator.simulate_game_session(step_duration)
                 
                 if success:
                     step_results['successful_clients'] += 1
+                    step_results['total_messages'] += (msg_sent + msg_received)
                 else:
                     step_results['failed_clients'] += 1
             
@@ -248,15 +271,23 @@ class LoadTestManager:
             for thread in threads:
                 thread.join()
             
+            # Calcular métricas de performance
             success_rate = (step_results['successful_clients'] / num_clients) * 100
             successful_games = step_results['successful_clients'] // 2
             
+            # Métricas simples de performance
+            messages_per_second = step_results['total_messages'] / step_duration if step_duration > 0 else 0
+            games_per_second = successful_games / step_duration if step_duration > 0 else 0
+            game_formation_rate = (successful_games / num_games) * 100 if num_games > 0 else 0
+            
             self.add_to_report(f"  📊 {num_clients} clientes: {success_rate:.1f}% sucesso")
-            self.add_to_report(f"  🎮 ~{successful_games} jogos formados com sucesso")
+            self.add_to_report(f"  🎮 {successful_games} jogos formados ({game_formation_rate:.1f}% dos {num_games} possíveis)")
+            self.add_to_report(f"  📈 Performance: {messages_per_second:.1f} msg/s, {games_per_second:.2f} jogos/s")
             
             # Atualizar resultados globais
             self.results['successful_clients'] += step_results['successful_clients']
             self.results['failed_clients'] += step_results['failed_clients']
+            self.results['total_messages'] += step_results['total_messages']
             
             # Se a taxa de sucesso cair muito, parar o teste
             if success_rate < 50:
@@ -265,9 +296,18 @@ class LoadTestManager:
             
             time.sleep(2)  # Pausa entre steps
         
+        # Calcular duração total do teste
+        self.results['test_duration'] = time.time() - self.test_start_time
+        
         # Estatísticas finais
         total_games_attempted = self.results['successful_clients'] // 2
-        self.add_to_report(f"🎮 Total de jogos formados: ~{total_games_attempted}")
+        self.add_to_report(f"🎮 Total de jogos formados: {total_games_attempted}")
+        
+        # Métricas finais de performance
+        if self.results['test_duration'] > 0:
+            overall_throughput = self.results['total_messages'] / self.results['test_duration']
+            overall_games_rate = total_games_attempted / self.results['test_duration']
+            self.add_to_report(f"📈 Performance geral: {overall_throughput:.1f} msg/s, {overall_games_rate:.2f} jogos/s")
         
         # Salvar relatório
         self.save_report_to_file("teste_carga_gradual_real")
