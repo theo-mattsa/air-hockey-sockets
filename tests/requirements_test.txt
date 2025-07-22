@@ -1,9 +1,0 @@
-pygame==2.6.1
-python-dotenv
-psutil
-threading
-time
-socket
-pickle
-matplotlib
-numpy

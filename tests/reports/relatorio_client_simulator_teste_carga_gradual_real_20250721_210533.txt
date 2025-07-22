@@ -1,0 +1,36 @@
+================================================================================
+           RELATÓRIO DE SIMULAÇÃO DE CLIENTES - PONG SOCKETS
+================================================================================
+
+Data/Hora: 21/07/2025 21:05:33
+Tipo de Teste: TESTE_CARGA_GRADUAL_REAL
+Servidor: 0.0.0.0:5555
+
+RESUMO DOS RESULTADOS:
+----------------------------------------
+Clientes bem-sucedidos: 100
+Clientes com falha: 0
+Total de mensagens: 0
+Duração do teste: 0.00s
+Taxa de sucesso: 100.0%
+
+DETALHES DA EXECUÇÃO:
+----------------------------------------
+[21:03:56] 🎮 Iniciando teste de carga gradual REAL: 0 até 40 clientes (20 jogos simultâneos)...
+[21:03:56] 🔄 Testando 10 clientes (5 jogos simultâneos)...
+[21:04:17]   📊 10 clientes: 100.0% sucesso
+[21:04:17]   🎮 ~5 jogos formados com sucesso
+[21:04:19] 🔄 Testando 20 clientes (10 jogos simultâneos)...
+[21:04:40]   📊 20 clientes: 100.0% sucesso
+[21:04:40]   🎮 ~10 jogos formados com sucesso
+[21:04:42] 🔄 Testando 30 clientes (15 jogos simultâneos)...
+[21:05:05]   📊 30 clientes: 100.0% sucesso
+[21:05:05]   🎮 ~15 jogos formados com sucesso
+[21:05:07] 🔄 Testando 40 clientes (20 jogos simultâneos)...
+[21:05:31]   📊 40 clientes: 100.0% sucesso
+[21:05:31]   🎮 ~20 jogos formados com sucesso
+[21:05:33] 🎮 Total de jogos formados: ~50
+
+================================================================================
+Relatório gerado automaticamente pelo Client Simulator
+================================================================================

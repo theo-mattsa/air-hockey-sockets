@@ -1,14 +1,13 @@
-# Configuração simples para os testes
-# Modifique estes valores conforme necessário
+import os
 
-# Configurações do servidor
-SERVER_HOST = "172.28.154.143"
+# Configurações do Servidor
+SERVER_HOST = "0.0.0.0"
 SERVER_PORT = 5555
 
-# Diretório para salvar relatórios
-import os
-REPORTS_DIR = os.path.join(os.path.dirname(__file__), "relatorios")
+# Configurações dos Testes
+DEFAULT_MAX_CLIENTS = 50
+DEFAULT_STEP = 5
+DEFAULT_STEP_DURATION = 30
 
-# Para usar um servidor remoto, altere para:
-# SERVER_HOST = "192.168.1.100"  # IP do servidor
-# SERVER_PORT = 5555             # Porta do servidor
+# Diretório dos Relatórios
+REPORTS_DIR = os.path.join(os.path.dirname(__file__), "reports")
