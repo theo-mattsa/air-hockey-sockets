@@ -137,7 +137,7 @@ def main():
     ip_address = os.getenv("SERVER_IP")
     port_number = int(os.getenv("SERVER_PORT"))
 
-    # TCP socket para o servidor
+    # TCP socket
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     
     try:
