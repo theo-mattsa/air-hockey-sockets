@@ -1,8 +1,8 @@
-# Pong Sockets
+# Air Hockey Sockets
 
 ## Descrição
 
-Um jogo multiplayer de Pong implementado com sockets TCP em Python, utilizando a biblioteca Pygame para a interface gráfica. O projeto demonstra a aplicação prática de conceitos de Redes de Computadores e Sistemas Operacionais, como a arquitetura cliente-servidor, comunicação via sockets, manipulação de threads e gerenciamente de áreas críticas com locks para criar um jogo funcional em tempo real.
+Um jogo multiplayer de Air Hockey implementado com sockets TCP em Python, utilizando a biblioteca Pygame para a interface gráfica. O projeto demonstra a aplicação prática de conceitos de Redes de Computadores, como a arquitetura cliente-servidor e comunicação via sockets para criar um jogo funcional em tempo real.
 
 ## Tecnologias Utilizadas
 
@@ -28,8 +28,8 @@ Um jogo multiplayer de Pong implementado com sockets TCP em Python, utilizando a
 Execute os seguintes comandos para clonar e acessar o repositório:
 
 ```bash
-git clone https://github.com/theo-mattsa/pong-sockets.git
-cd pong-sockets
+git clone https://github.com/theo-mattsa/air-hockey-sockets.git
+cd air-hockey-sockets
 ```
 
 **2. Configuração do Ambiente**
@@ -63,7 +63,7 @@ chmod +x run_server.sh
 ./run_server.sh
 ```
 
-O terminal exibirá a mensagem "Servidor Pong iniciado em...".
+O terminal exibirá a mensagem "Servidor Air Hockey iniciado em...".
 
 **4. Execute o cliente**
 
@@ -108,12 +108,26 @@ Os fluxogramas abaixo ilustram o fluxo de funcionamento do servidor e do cliente
 
 ## Performance
 
-O jogo operou perfeitamente, sem atrasos perceptíveis, mesmo com quatro partidas simultâneas.
+### Abordagem 1 - `teste_carga_v0`
 
 Para simular a escalabilidade e a estabilidade do servidor sob uma carga maior de requisições, foi utilizado o script `server_test.py`.
+
 Com o objetivo de simular um número maior de conexões — até sessenta jogadores simultâneos — foi implementado um modo de teste no servidor, no qual ele apenas envia e recebe dados, sem processar a lógica do jogo (substituída por um sleep).
 
+Foi observado que o jogo operou perfeitamente, sem atrasos perceptíveis, mesmo com quatro partidas simultâneas.
+
 Os resultados demonstraram uma excelente performance, conforme registrado no relatório `relatorio_carga_gradual_20250721_205721.txt`.
+
+### Abordagem 2 - `teste_carga_v1`
+
+Este script executa um teste de carga mais realista, simulando clientes que seguem o protocolo completo do jogo. Isto é, enviando nomes, recebimento estados do jogo e movimentação dos paddles (raquetes).
+
+Além de avaliar a performance do servidor e gerar um relatório, o servidor também gera uma visualização gráfica
+que expressa o uso de recursos e estabilidade do servidor em função do número de jogadores simultâneos.
+
+Com base no relatório gerado, conclui-se o servidor suportou bem até cerca de 30 clientes simultâneos, mantendo taxas de sucesso acima de 90% e uso de CPU e memória baixos. A partir de 40 clientes, a taxa de sucesso caiu para cerca de 70%, indicando que o servidor começa a atinger um certo "limite".
+
+Esse relatório evidenciou que o servidor é robusto para cenários reais de até 30 clientes simultâneos e pode ser otimizado para suportar cargas maiores.
 
 ## Possíveis Melhorias Futuras
 

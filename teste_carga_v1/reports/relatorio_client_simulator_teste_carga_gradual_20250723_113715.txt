@@ -1,0 +1,121 @@
+================================================================================
+RELATÓRIO DE SIMULAÇÃO DE CLIENTES
+================================================================================
+
+Data/Hora: 23/07/2025 11:37:15
+Servidor Alvo: 0.0.0.0:5555
+
+RESUMO GERAL:
+----------------------------------------
+Duração total do teste: 156.11s
+Total de clientes bem-sucedidos: 381
+Total de clientes com falha: 0
+
+ANÁLISE DETALHADA POR ETAPA:
+----------------------------------------
+Etapa com 10 Clientes:
+  - Sucesso: 100.0% (10/10)
+  - Recursos (na máquina local):
+    - CPU Média: 2.8% | CPU Pico: 3.9%
+    - Memória Média: 22.9%
+
+Etapa com 20 Clientes:
+  - Sucesso: 100.0% (20/20)
+  - Recursos (na máquina local):
+    - CPU Média: 3.4% | CPU Pico: 4.5%
+    - Memória Média: 22.8%
+
+Etapa com 30 Clientes:
+  - Sucesso: 93.3% (28/30)
+  - Recursos (na máquina local):
+    - CPU Média: 4.0% | CPU Pico: 4.7%
+    - Memória Média: 22.8%
+
+Etapa com 40 Clientes:
+  - Sucesso: 72.5% (29/40)
+  - Recursos (na máquina local):
+    - CPU Média: 4.3% | CPU Pico: 5.1%
+    - Memória Média: 22.8%
+
+Etapa com 50 Clientes:
+  - Sucesso: 70.0% (35/50)
+  - Recursos (na máquina local):
+    - CPU Média: 4.8% | CPU Pico: 5.8%
+    - Memória Média: 22.9%
+
+Etapa com 60 Clientes:
+  - Sucesso: 71.7% (43/60)
+  - Recursos (na máquina local):
+    - CPU Média: 5.3% | CPU Pico: 6.7%
+    - Memória Média: 23.0%
+
+Etapa com 70 Clientes:
+  - Sucesso: 70.0% (49/70)
+  - Recursos (na máquina local):
+    - CPU Média: 5.3% | CPU Pico: 7.3%
+    - Memória Média: 23.2%
+
+Etapa com 80 Clientes:
+  - Sucesso: 70.0% (56/80)
+  - Recursos (na máquina local):
+    - CPU Média: 5.9% | CPU Pico: 7.6%
+    - Memória Média: 23.4%
+
+Etapa com 90 Clientes:
+  - Sucesso: 57.8% (52/90)
+  - Recursos (na máquina local):
+    - CPU Média: 5.7% | CPU Pico: 7.4%
+    - Memória Média: 23.4%
+
+Etapa com 100 Clientes:
+  - Sucesso: 59.0% (59/100)
+  - Recursos (na máquina local):
+    - CPU Média: 6.6% | CPU Pico: 8.4%
+    - Memória Média: 23.5%
+
+
+LOG DETALHADO DA EXECUÇÃO:
+----------------------------------------
+[11:34:39] Iniciando teste de carga gradual com monitoramento...
+[11:34:39] 
+Etapa: 10 clientes por 10s...
+[11:34:50]    Sucesso: 100.0% (10/10)
+[11:34:50]    CPU: 2.8% (Média), 3.9% (Pico) | Memória: 22.9% (Média)
+[11:34:53] 
+Etapa: 20 clientes por 10s...
+[11:35:05]    Sucesso: 100.0% (20/20)
+[11:35:05]    CPU: 3.4% (Média), 4.5% (Pico) | Memória: 22.8% (Média)
+[11:35:08] 
+Etapa: 30 clientes por 10s...
+[11:35:20]    Sucesso: 93.3% (28/30)
+[11:35:20]    CPU: 4.0% (Média), 4.7% (Pico) | Memória: 22.8% (Média)
+[11:35:23] 
+Etapa: 40 clientes por 10s...
+[11:35:35]    Sucesso: 72.5% (29/40)
+[11:35:35]    CPU: 4.3% (Média), 5.1% (Pico) | Memória: 22.8% (Média)
+[11:35:38] 
+Etapa: 50 clientes por 10s...
+[11:35:50]    Sucesso: 70.0% (35/50)
+[11:35:50]    CPU: 4.8% (Média), 5.8% (Pico) | Memória: 22.9% (Média)
+[11:35:53] 
+Etapa: 60 clientes por 10s...
+[11:36:06]    Sucesso: 71.7% (43/60)
+[11:36:06]    CPU: 5.3% (Média), 6.7% (Pico) | Memória: 23.0% (Média)
+[11:36:09] 
+Etapa: 70 clientes por 10s...
+[11:36:23]    Sucesso: 70.0% (49/70)
+[11:36:23]    CPU: 5.3% (Média), 7.3% (Pico) | Memória: 23.2% (Média)
+[11:36:26] 
+Etapa: 80 clientes por 10s...
+[11:36:39]    Sucesso: 70.0% (56/80)
+[11:36:39]    CPU: 5.9% (Média), 7.6% (Pico) | Memória: 23.4% (Média)
+[11:36:42] 
+Etapa: 90 clientes por 10s...
+[11:36:56]    Sucesso: 57.8% (52/90)
+[11:36:56]    CPU: 5.7% (Média), 7.4% (Pico) | Memória: 23.4% (Média)
+[11:36:59] 
+Etapa: 100 clientes por 10s...
+[11:37:12]    Sucesso: 59.0% (59/100)
+[11:37:12]    CPU: 6.6% (Média), 8.4% (Pico) | Memória: 23.5% (Média)
+[11:37:15] 
+Teste de carga finalizado em 156.11 segundos.

@@ -21,7 +21,7 @@ pygame.init()
 
 class Game:
     """
-    Representa um jogo de Pong com dois jogadores.
+    Representa um jogo de Air hockey com dois jogadores.
     Cada jogo tem seu próprio lock para acessar o estado do jogo de forma segura.
     """
     def __init__(self, game_id: str):
@@ -302,7 +302,7 @@ def main():
     try:
         s.bind((ip_address, port_number))
         s.listen(5) 
-        print(f"Servidor Pong iniciado em {ip_address}:{port_number}")
+        print(f"Servidor Air Hockey iniciado em {ip_address}:{port_number}")
         print("Aguardando conexões...")
     except socket.error as e:
         print(f"Erro ao iniciar servidor: {e}")
