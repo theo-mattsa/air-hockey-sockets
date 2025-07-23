@@ -21,7 +21,7 @@ COLOR_INACTIVE = pygame.Color('lightskyblue3')
 COLOR_ACTIVE = pygame.Color('dodgerblue2')
 
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("Cliente Pong")
+pygame.display.set_caption("Cliente Air Hockey")
 
 # Fontes
 font = pygame.font.Font(None, 74)
@@ -198,7 +198,7 @@ def main():
         pygame.quit()
         sys.exit()
     
-    pygame.display.set_caption(f"Pong - {player_name}")
+    pygame.display.set_caption(f"Air hockey - {player_name}")
     
     # Inicialização das raquetes
     my_paddle = pygame.Rect(WIDTH/2 - PADDLE_WIDTH/2, 

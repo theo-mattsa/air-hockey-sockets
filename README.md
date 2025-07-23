@@ -1,8 +1,8 @@
-# Pong Sockets
+# Air Hockey Sockets
 
 ## Descrição
 
-Um jogo multiplayer de Pong implementado com sockets TCP em Python, utilizando a biblioteca Pygame para a interface gráfica. O projeto demonstra a aplicação prática de conceitos de Redes de Computadores, como a arquitetura cliente-servidor e comunicação via sockets para criar um jogo funcional em tempo real.
+Um jogo multiplayer de Air Hockey implementado com sockets TCP em Python, utilizando a biblioteca Pygame para a interface gráfica. O projeto demonstra a aplicação prática de conceitos de Redes de Computadores, como a arquitetura cliente-servidor e comunicação via sockets para criar um jogo funcional em tempo real.
 
 ## Tecnologias Utilizadas
 
@@ -56,7 +56,7 @@ chmod +x run_server.sh
 ./run_server.sh
 ```
 
-O terminal exibirá a mensagem "Servidor Pong iniciado em...".
+O terminal exibirá a mensagem "Servidor Air Hockey iniciado em...".
 
 **4. Execute o cliente**
 
